@@ -5,7 +5,7 @@ import random as rdm
 
 ##values
 mass = 1
-number = 2  #Division of ticks (i.e whole numbs, half, third etc)
+number = 1  #Division of ticks (i.e whole numbs, half, third etc)
 x1 = 2      #upper bound
 x0 = -x1    #lower bound
 ti = 0      #start time
@@ -74,7 +74,6 @@ N= int(10e+3) #number of samples
 def prop(points, potential, path, energy, weight, samples):
     'calculating propagator'
 
-
     G = np.zeros([n])
     for i in range(0, samples):
         p = path(points, n)
@@ -90,7 +89,7 @@ G = prop(x, pot, path_gen, E, W, N)
 
 ###repeating propogator for smaller samples
 
-end = 6
+end = 2
 
 Ns = np.logspace(start=1, stop= end, base=10, num= end)
 
@@ -98,6 +97,7 @@ Gs = np.zeros([len(Ns), n])
 for j in range(0, len(Ns)):
     for i in Ns:
         Gs[j] = prop(x, pot, path_gen, E, W, int(i))
+
 
 
 ###normalisation function
@@ -109,10 +109,6 @@ def norm(array):
     normalised = array/total
     return normalised
 
-
-'''plotting graphs'''
-
-#Normalising Gs
 Norm_G = norm(G)
 
 Norm_Gs = np.zeros([len(Ns),n])
@@ -122,54 +118,9 @@ for i in range(0,len(Ns)):
 y1 = Norm_G
 ys = Norm_Gs
 
-plt.figure()
+
 plt.plot(x, y1)
-plt.show()
-
-plt.figure()
-for j in range(0, len(Ns)):
-    plt.plot(x, ys[j], label=Ns[j], alpha = a[i])
+for i in range(0, len(Ns)):
+    plt.plot(x, ys[i])
 plt.legend()
 plt.show()
-
-
-
-###ground state w_fn
-
-def pdf(x):
-    'prob density function'
-
-    prob = ( np.exp(-(x**2/2)) / np.pi**(1/4) ) ** 2
-    return prob
-
-prob = pdf(x)
-y2 = norm(prob)
-
-#print(y2)
-
-
-###plot of FPI and standard formulation
-
-#calculate potential
-
-l = 100 * (x1 - x0) + 1
-xs = np.linspace(-2, 2, l)
-ys = pot(xs)
-
-plt.figure()
-plt.plot(x , y1, label = 'FPI', color = 'k')
-plt.plot(x , y2, label = 'PDF', color = 'tab:orange' )
-plt.plot(xs, ys, label = 'Potential', color = 'tab:blue')
-plt.legend()
-plt.grid()
-plt.xlim(-2, 2)
-plt.xlabel('position')
-plt.ylabel('probability')
-plt.ylim(0, max(y1) + 0.1*max(y1))
-plt.show()
-
-stopg
-
-
-
-

@@ -5,7 +5,7 @@ import random as rdm
 
 ##values
 mass = 1
-number = 1  #Division of ticks (i.e whole numbs, half, third etc)
+number = 2  #Division of ticks (i.e whole numbs, half, third etc)
 x1 = 2      #upper bound
 x0 = -x1    #lower bound
 ti = 0      #start time
@@ -26,6 +26,8 @@ m = mass         #shorthand for mass
 ##path
 
 def path_gen(xs, n):
+    'path generator'
+
     path = np.zeros([n])
     path[0]=path[n-1]=rdm.choice(xs)
     for i in range(1,n-1):
@@ -38,19 +40,14 @@ p_1 = path_gen(x, n)
 ##potential energies
 
 def pot(x):
+    'simple harmonic oscillator potential'
     V = 1/2*(x)**2
     return V
-
-def pot2(x):
-    V = x
-    return V
-
-
-y = pot(x)
 
 
 ##energy
 def E(path, potential):
+    'calculating energies'
     E_path = [0]
     for i in range(0, n-1):
         KE = m/2*((path[i+1]-path[i])/a)**2
@@ -65,6 +62,7 @@ e_1 = E(p_1, pot)
 
 ##weighting
 def W(energy):
+    'calculating weight'
     weight = np.exp(-a*energy)
     return weight
 
@@ -74,6 +72,9 @@ def W(energy):
 N= int(10e+3) #number of samples
 
 def prop(points, potential, path, energy, weight, samples):
+    'calculating propagator'
+
+
     G = np.zeros([n])
     for i in range(0, samples):
         p = path(points, n)
@@ -89,11 +90,11 @@ G = prop(x, pot, path_gen, E, W, N)
 
 ###repeating propogator for smaller samples
 
-end = 2
+end = 6
 
 Ns = np.logspace(start=1, stop= end, base=10, num= end)
-Gs = np.zeros([len(Ns), n])
 
+Gs = np.zeros([len(Ns), n])
 for j in range(0, len(Ns)):
     for i in Ns:
         Gs[j] = prop(x, pot, path_gen, E, W, int(i))
@@ -102,36 +103,32 @@ for j in range(0, len(Ns)):
 ###normalisation function
 
 def norm(array):
+    'normalisation function'
+
     total = sum(array)
     normalised = array/total
     return normalised
 
 
-###plotting graphs
+'''plotting graphs'''
 
+#Normalising Gs
+Norm_G = norm(G)
 
-# just main sample G
+Norm_Gs = np.zeros([len(Ns),n])
+for i in range(0,len(Ns)):
+    Norm_Gs[i] = norm(Gs[i])
 
-y1 = norm(G)
-ys = norm(Gs)
+y1 = Norm_G
+ys = Norm_Gs
 
 plt.figure()
 plt.plot(x, y1)
 plt.show()
 
-# range of samples G
-
-ys = np.zeros([len(Ns), n])
-
-# for i in range(0, len(Ns)):
-#   ys[i] = norm(Gs[i])
-
 plt.figure()
-
 for j in range(0, len(Ns)):
-    plt.plot(x, ys[j], label=Ns[j])
-
-# plt.plot(x, y1)
+    plt.plot(x, ys[j], label=Ns[j], alpha = a[i])
 plt.legend()
 plt.show()
 
@@ -140,6 +137,8 @@ plt.show()
 ###ground state w_fn
 
 def pdf(x):
+    'prob density function'
+
     prob = ( np.exp(-(x**2/2)) / np.pi**(1/4) ) ** 2
     return prob
 
@@ -169,6 +168,7 @@ plt.ylabel('probability')
 plt.ylim(0, max(y1) + 0.1*max(y1))
 plt.show()
 
+stop
 
 
 

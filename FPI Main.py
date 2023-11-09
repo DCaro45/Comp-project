@@ -5,30 +5,31 @@ import random as rdm
 '''values'''
 mass = 1
 
-n_t = 7       #Number of time points
-divs_x = 4    #Division of space points (i.e whole numbs, half, third etc)
-
 x0 = -2       #lower bound
 x1 = 2        #upper bound
 ti = 0        #start time
 tf = 5        #finish time
 
+n_t = 7                         #Number of time points
+divs_x = 4                      #Division of space points (i.e whole numbs, half, third etc)
+n_x = divs_x * (x1 - x0) + 1    #number of spatial points
+
+
+N= int(10e+8)                   #number of samples for prop calc
+end = 5                         #10^(end) samples
+nbr = 2                         #number of graphs
 
 '''determinants/shorthands'''
 
 m = mass                       #shorthand for mass
 
-n_x = divs_x * (x1 - x0) + 1         #number of spatial points
 a = (tf-ti)/(n_t-1)                  #size of time step
 t_points = np.linspace(ti, tf, n_t)  #time lattice points
 x_points = np.linspace(x0, x1, n_x)  #spacial lattice points
+'check that the t_step in t_points = a'
 
 n = n_x                          #shorthand for no.x points
 x = x_points                     #shorthand for lattice points
-
-N= int(10e+8)                    #number of samples for prop calc
-end = 5                          #10^(end) samples
-nbr = 2                          #number of graphs
 
 
 '''path function'''

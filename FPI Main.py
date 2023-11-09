@@ -1,30 +1,37 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib as mpt
 import random as rdm
 
-##values
+'''values'''
 mass = 1
-number = 2  #Division of ticks (i.e whole numbs, half, third etc)
-x1 = 2      #upper bound
-x0 = -x1    #lower bound
-ti = 0      #start time
-tf = 5      #finish time
+
+n_t = 7       #Number of time points
+divs_x = 4    #Division of space points (i.e whole numbs, half, third etc)
+
+x0 = -2       #lower bound
+x1 = 2        #upper bound
+ti = 0        #start time
+tf = 5        #finish time
 
 
-##determinants
+'''determinants/shorthands'''
 
-n = number * (x1 - x0) + 1     #number of steps
-n = n
-a = (tf-ti)/n                  #time step
-points = np.linspace(x0,x1,n)  #spacial lattice points
+m = mass                       #shorthand for mass
 
-x = points       #shorthand for lattice points
-m = mass         #shorthand for mass
+n_x = divs_x * (x1 - x0) + 1         #number of spatial points
+a = (tf-ti)/(n_t-1)                  #size of time step
+t_points = np.linspace(ti, tf, n_t)  #time lattice points
+x_points = np.linspace(x0, x1, n_x)  #spacial lattice points
+
+n = n_x                          #shorthand for no.x points
+x = x_points                     #shorthand for lattice points
+
+N= int(10e+8)                    #number of samples for prop calc
+end = 5                          #10^(end) samples
+nbr = 2                          #number of graphs
 
 
-##path
-
+'''path function'''
 def path_gen(xs, n):
     'path generator'
 
@@ -33,20 +40,18 @@ def path_gen(xs, n):
     for i in range(1,n-1):
         path[i]=rdm.choice(xs)
     return path
-
 p_1 = path_gen(x, n)
 
 
-##potential energies
-
+'''potential energy functions'''
 def pot(x):
     'simple harmonic oscillator potential'
     V = 1/2*(x)**2
     return V
 
 
-##energy
-def E(path, potential):
+'''energy function'''
+def Engy(path, potential):
     'calculating energies'
     E_path = [0]
     for i in range(0, n-1):
@@ -56,25 +61,16 @@ def E(path, potential):
         E_path+=  E_tot
     return E_path
 
-e_1 = E(p_1, pot)
-
-
-
-##weighting
-def W(energy):
+'''weighting function'''
+def Wght(energy):
     'calculating weight'
     weight = np.exp(-a*energy)
     return weight
 
 
-###propogator
-
-N= int(10e+3) #number of samples
-
+'''propogator function'''
 def prop(points, potential, path, energy, weight, samples):
     'calculating propagator'
-
-
     G = np.zeros([n])
     for i in range(0, samples):
         p = path(points, n)
@@ -85,38 +81,35 @@ def prop(points, potential, path, energy, weight, samples):
         G[idx] += W
     return G
 
-G = prop(x, pot, path_gen, E, W, N)
+'Calculating propogator value'
+G = prop(x, pot, path_gen, Engy, Wght, N)
 
 
-###repeating propogator for smaller samples
+'''repeating propagator for smaller samples'''
+Ns = np.logspace(start=0, stop= end, base=2, num=nbr)
+lng = len(Ns)
 
-end = 6
 
-Ns = np.logspace(start=1, stop= end, base=10, num= end)
-
-Gs = np.zeros([len(Ns), n])
-for j in range(0, len(Ns)):
+Gs = np.zeros([lng, n])
+for j in range(0, lng):
     for i in Ns:
-        Gs[j] = prop(x, pot, path_gen, E, W, int(i))
+        Gs[j] = prop(x, pot, path_gen, Engy, Wght, int(i))
 
 
-###normalisation function
-
+'''normalisation function'''
 def norm(array):
     'normalisation function'
-
     total = sum(array)
     normalised = array/total
     return normalised
 
 
 '''plotting graphs'''
-
-#Normalising Gs
+'Normalising Gs'
 Norm_G = norm(G)
 
-Norm_Gs = np.zeros([len(Ns),n])
-for i in range(0,len(Ns)):
+Norm_Gs = np.zeros([lng,n])
+for i in range(0,lng):
     Norm_Gs[i] = norm(Gs[i])
 
 y1 = Norm_G
@@ -126,36 +119,35 @@ plt.figure()
 plt.plot(x, y1)
 plt.show()
 
+As = np.linspace(int(1/lng), 1, lng)
+
 plt.figure()
-for j in range(0, len(Ns)):
-    plt.plot(x, ys[j], label=Ns[j], alpha = a[i])
+for j in range(0, lng):
+    plt.plot(x, ys[j], label=Ns[j], alpha = As[j])
 plt.legend()
 plt.show()
 
 
 
-###ground state w_fn
-
+'''ground state w_fn analystic equation'''
 def pdf(x):
     'prob density function'
 
     prob = ( np.exp(-(x**2/2)) / np.pi**(1/4) ) ** 2
     return prob
 
-prob = pdf(x)
-y2 = norm(prob)
 
-#print(y2)
+'''plot of FPI and standard formulation'''
 
-
-###plot of FPI and standard formulation
-
-#calculate potential
+'calculate potential and analytic pdf'
+pdf_A = pdf(x)
+y2 = norm(pdf_A)
 
 l = 100 * (x1 - x0) + 1
 xs = np.linspace(-2, 2, l)
 ys = pot(xs)
 
+'plotting graphs'
 plt.figure()
 plt.plot(x , y1, label = 'FPI', color = 'k')
 plt.plot(x , y2, label = 'PDF', color = 'tab:orange' )
@@ -168,7 +160,6 @@ plt.ylabel('probability')
 plt.ylim(0, max(y1) + 0.1*max(y1))
 plt.show()
 
-stopg
 
 
 

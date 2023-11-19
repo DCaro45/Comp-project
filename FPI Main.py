@@ -18,7 +18,7 @@ n_x = divs_x * (x1 - x0) + 1    #number of spatial points
 'sample sizes'
 N= int(10e+1)                   #number of samples for prop calc
 
-N_fin = 10e+1                   #finishing point logarithmic scale
+N_fin = 10e+0                   #finishing point logarithmic scale
 base = 2                        #base for logarithmic scale
 nbr = 10                        #number of graphs
 

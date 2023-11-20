@@ -156,7 +156,6 @@ def prop(points, potential, path, action, samples):
 
     #initialising lattice
     paths = np.zeros([samples, l_size])
-    print(pahts)
 
     #thermalisation
     therm_p = np.zeros([lgth, l_size])
@@ -204,7 +203,7 @@ def norm(array):
 
 '''Plotting PDF'''
 #values
-G = prop(x, pot, path_gen, Engy, N)
+G = prop(x, pot, path_gen, Actn, N)
 Norm_G = norm(G)
 y1 = Norm_G
 

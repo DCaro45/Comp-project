@@ -12,15 +12,15 @@ ti = 0        #start time
 tf = 5        #finish time
 
 n_t = 7                         #Number of time points
-divs_x = 2                      #Division of space points (i.e whole numbs, half, third etc)
+divs_x = 1                      #Division of space points (i.e whole numbs, half, third etc)
 n_x = divs_x * (x1 - x0) + 1    #number of spatial points
 
 'sample sizes'
-N= int(10e+1)                   #number of samples for prop calc
+N= int(10e+5)                   #number of samples for prop calc
 
 N_fin = 10e+1                   #finishing point logarithmic scale
 base = 2                        #base for logarithmic scale
-nbr = 10                        #number of graphs
+nbr = 1                        #number of graphs
 
 
 '''determinants/shorthands'''

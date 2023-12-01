@@ -4,91 +4,90 @@ import math as mt
 import random as rdm
 
 '''values'''
-mass = 1
+mass = 1  # setting mass to be 1
 
-x0 = -2       #lower bound
-x1 = 2        #upper bound
-ti = 0        #start time
-tf = 5        #finish time
+x0 = -2  # lower bound
+x1 = 2  # upper bound
+ti = 0  # start time
+tf = 10  # finish time
 
-n_t = 7                         #Number of time points
-divs_x = 1                      #Division of space points (i.e whole numbs, half, third etc)
-n_x = divs_x * (x1 - x0) + 1    #number of spatial points
+n_t = 6         # number of temporal points (i.e whole numbs, half, third etc))
+div_x = 5       # division of spacial points
+N = int(10**2)  # number of paths seeding metropolis
 
-'sample sizes'
-N= int(10e+4)                   #number of samples for prop calc
-
-N_fin = 10e+0                   #finishing point logarithmic scale
-base = 2                        #base for logarithmic scale
-nbr = 1                        #number of graphs
+N_fin = int(10e+3)                    # finishing value on logarithmic scale
+nbr = 20                         # number of graphs
 
 
 '''determinants/shorthands'''
-m = mass                       #shorthand for mass
+n_x = div_x * (x1 - x0) + 1          # number of spatial points
+a = (tf - ti) / (n_t - 1)            # size of time step
+b = (x1 - x0) / (n_x - 1)            # size of spacial step
+t_points = np.linspace(ti, tf, n_t)  # temporal lattice points
+x_points = np.linspace(x0, x1, n_x)  # spacial lattice points
 
-a = (tf-ti)/(n_t-1)                  #size of time step
-t_points = np.linspace(ti, tf, n_t)  #time lattice points
-x_points = np.linspace(x0, x1, n_x)  #spacial lattice points
+base = (N_fin)**(1/nbr)         # base for logarithmic scale
+exp = mt.log(N_fin, base)       # exponent for end value of logarithm range
 
-n = n_x                          #shorthand for no.x points
-x = x_points                     #shorthand for lattice points
 
-exp = mt.log(N_fin, base)       #exponent for end value of logarithm range
 
+m = mass  # shorthand for mass
+nt = n_t  # shorthand for no.t points
+nx = n_x  # shorthand for no.x points
+x = x_points  # shorthand for spatial lattice points
+t = t_points  # shorthand for temporal lattice points
+e = exp
 
 """Defining functions"""
-def path_gen(xs, x0):
+def path_gen(x_0):
     """path generator"""
-
-    lgt = len(xs)
-    path = np.zeros([lgt])
-    path[0]=path[lgt-1]=x0
-    for i in range(1,lgt-1):
-        path[i]=rdm.choice(xs)
+    path = np.zeros([nt])
+    path[0] = path[nt-1] = x_0
+    for i in range(1, nt-1):
+        path[i] = rdm.choice(x)
     return path
 
-def pot(x):
+def pot(xs):
     """simple harmonic oscillator potential"""
 
-    V = 1/2*(x)**2
-    return V
+    potential = 1/2 * xs**2
+    return potential
 
-def Engy(path, potential):
+def actn(path, potential):
     """calculating energies"""
 
-    E_path = [0]
-    for i in range(0, n-1):
+    E_path = 0
+    for i in range(0, nt-1):
         KE = m/2*((path[i+1]-path[i])/a)**2
         PE = potential((path[i+1]+path[i])/2)
         E_tot = KE + PE
-        E_path+=  E_tot
-    return E_path
+        E_path += E_tot
+    Action = a * E_path
+    return Action
 
-def Wght(energy):
+def wght(action):
     """calculating weight"""
 
-    weight = np.exp(-a*energy)
+    weight = np.exp(-action)
     return weight
 
-def prop(points, potential, path, energy, samples):
+def prop(potential, samples):
     """calculating propagator"""
 
-    l_size = len(points)
-    G = np.zeros([l_size])
-    run = int(samples/l_size)
-    for x0 in points:
+    propagator = np.zeros([nx])
+    run = int(samples/nx)
+    for j, x0 in enumerate(x):
         for i in range(0, run):
-            p = path(points, x0)
-            E = energy(p, potential)
-            W = Wght(E)
-            indx = np.where(points == x0)
-            G[indx] += W
-    return G
+            p = path_gen(x0)
+            S = actn(p, potential)
+            W = wght(S)
+            propagator[j] += W
+    return propagator
 
-def pdf(x):
+def pdf(xs):
     """prob density function"""
 
-    prob = (np.exp(-(x ** 2 / 2)) / np.pi ** (1 / 4)) ** 2
+    prob = (np.exp(-(xs ** 2 / 2)) / np.pi ** (1 / 4)) ** 2
     return prob
 
 def norm(array):
@@ -101,59 +100,64 @@ def norm(array):
     else:
         return 0
 
+p_1 = path_gen(x[int(len(x)/2)])
+print(p_1)
+g = prop(pot, nx * 10)
+print(g)
 
-'''Plotting PDF'''
-#values
-G = prop(x, pot, path_gen, Engy, N)
+'''Calculating and plotting PDF'''
+# values
+G = prop(pot, N)
 Norm_G = norm(G)
 y1 = Norm_G
 
-#Graph
+# graph
 plt.figure()
 plt.plot(x, y1)
 plt.show()
 
 
 '''repeating propagator for smaller samples'''
-#Sample size
-Ns = np.logspace(start=0, stop= exp, base=base, num=nbr)
-lng = len(Ns)
+# sample size
+Ns = np.logspace(start=0, stop=e, base=base, num=nbr)
 
-#values
-Gs = np.zeros([lng, n])
-for j in range(0, lng):
+# values
+Gs = np.zeros([nbr, nx])
+for j in range(nbr):
     for i in Ns:
-        Gs[j] = prop(x, pot, path_gen, Engy, int(i))
+        Gs[j] = prop(pot, int(i))
 
-#normalising valuesa
-Norm_Gs = np.zeros([lng,n])
-for i in range(0,lng):
+
+# normalising values
+Norm_Gs = np.zeros([nbr, nx])
+for i in range(nbr):
     Norm_Gs[i] = norm(Gs[i])
 ys = Norm_Gs
 
+
 'plotting graphs'
-As = np.linspace(int(1/lng), 1, lng)    #Alpha valeus
+As = np.linspace(0.25, 1, nbr)    #Alpha valeus
 
 plt.figure()
-for j in range(0, lng):
+for j in range(0, nbr):
     plt.plot(x, ys[j], alpha = As[j])
 plt.show()
 
 
 '''plot of FPI and standard formulation'''
-#calculate potential and analytic pdf'
+# calculate potential and analytic pdf'
 pdf_A = pdf(x)
 y2 = norm(pdf_A)
+#y2 = pdf_B * (max(y1)/max(pdf_B))
 
-l = 100 * (x1 - x0) + 1
-xs = np.linspace(-2, 2, l)
+xs = np.linspace(-5, 5, 100)
 ys = pot(xs)
 
-#plotting graphs'
+# plotting graphs'
 plt.figure()
-plt.plot(x , y1, label = 'FPI', color = 'k')
-plt.plot(x , y2, label = 'PDF', color = 'tab:orange' )
-plt.plot(xs, ys, label = 'Potential', color = 'tab:blue')
+plt.plot(x  , y1, label='FPI',       color='k')
+plt.plot(x  , y2, label='PDF',       color='tab:orange')
+plt.plot(xs , ys, label='Potential', color='tab:blue')
 plt.legend()
 plt.grid()
 plt.xlim(-2, 2)
@@ -161,14 +165,3 @@ plt.xlabel('position')
 plt.ylabel('probability')
 plt.ylim(0, max(y1) + 0.1*max(y1))
 plt.show()
-
-#plt.figure()
-pdf_A = pdf(xs)
-y2 = norm(pdf_A)
-plt.plot(xs, y2)
-plt.show()
-
-
-
-
-

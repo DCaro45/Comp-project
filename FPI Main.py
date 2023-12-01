@@ -79,7 +79,7 @@ def prop(potential, samples):
     rem = samples%nx
     if run > 0:
         for j, x0 in enumerate(x):
-            for i in range(run):
+            for i in range(int(run+rem)):
                 p = path_gen(x0)
                 S = actn(p, potential)
                 W = wght(S)

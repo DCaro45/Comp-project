@@ -13,7 +13,7 @@ tf = 10  # finish time
 
 n_t = 6         # number of temporal points (i.e whole numbs, half, third etc))
 div_x = 10       # division of spacial points
-N = int(10**6)  # number of paths seeding metropolis
+N = int(10**7)  # number of paths seeding metropolis
 
 N_fin = int(10e+5)                    # finishing value on logarithmic scale
 nbr = 20                         # number of graphs
@@ -91,6 +91,7 @@ def prop(potential, samples):
                 S = actn(p, potential)
                 W = wght(S)
                 propagator[j] += W
+    print(run, rem, run * nx, samples)
     return propagator
 
 def pdf(xs):
@@ -111,7 +112,7 @@ def norm(array):
 
 p_1 = path_gen(x[int(len(x)/2)])
 print(p_1)
-g = prop(pot, nx * 10)
+g = prop(pot, 10 * nx)
 print(g)
 
 '''Calculating and plotting PDF'''

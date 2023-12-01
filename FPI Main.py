@@ -12,10 +12,10 @@ ti = 0  # start time
 tf = 10  # finish time
 
 n_t = 6         # number of temporal points (i.e whole numbs, half, third etc))
-div_x = 5       # division of spacial points
-N = int(10**2)  # number of paths seeding metropolis
+div_x = 10       # division of spacial points
+N = int(10**6)  # number of paths seeding metropolis
 
-N_fin = int(10e+3)                    # finishing value on logarithmic scale
+N_fin = int(10e+5)                    # finishing value on logarithmic scale
 nbr = 20                         # number of graphs
 
 
@@ -75,13 +75,22 @@ def prop(potential, samples):
     """calculating propagator"""
 
     propagator = np.zeros([nx])
-    run = int(samples/nx)
-    for j, x0 in enumerate(x):
-        for i in range(0, run):
-            p = path_gen(x0)
-            S = actn(p, potential)
-            W = wght(S)
-            propagator[j] += W
+    run = samples//nx
+    rem = samples%nx
+    if run > 0:
+        for j, x0 in enumerate(x):
+            for i in range(run):
+                p = path_gen(x0)
+                S = actn(p, potential)
+                W = wght(S)
+                propagator[j] += W
+    else:
+        for j, x0 in enumerate(x):
+            for i in range(rem):
+                p = path_gen(x0)
+                S = actn(p, potential)
+                W = wght(S)
+                propagator[j] += W
     return propagator
 
 def pdf(xs):
@@ -108,6 +117,7 @@ print(g)
 '''Calculating and plotting PDF'''
 # values
 G = prop(pot, N)
+print(G)
 Norm_G = norm(G)
 y1 = Norm_G
 
@@ -138,23 +148,25 @@ ys = Norm_Gs
 'plotting graphs'
 As = np.linspace(0.25, 1, nbr)    #Alpha valeus
 
-plt.figure()
+plt.figure(figsize=[20,8])
+plt.subplot(1, 2, 1)
 for j in range(0, nbr):
     plt.plot(x, ys[j], alpha = As[j])
-plt.show()
+plt.xlabel('position')
+plt.ylabel('probability density')
 
 
 '''plot of FPI and standard formulation'''
 # calculate potential and analytic pdf'
 pdf_A = pdf(x)
-y2 = norm(pdf_A)
-#y2 = pdf_B * (max(y1)/max(pdf_B))
+pdf_B = norm(pdf_A)
+y2 = pdf_B * (max(y1)/max(pdf_B))
 
 xs = np.linspace(-5, 5, 100)
 ys = pot(xs)
 
-# plotting graphs'
-plt.figure()
+# plotting graphs
+plt.subplot(1, 2, 2)
 plt.plot(x  , y1, label='FPI',       color='k')
 plt.plot(x  , y2, label='PDF',       color='tab:orange')
 plt.plot(xs , ys, label='Potential', color='tab:blue')
@@ -162,6 +174,6 @@ plt.legend()
 plt.grid()
 plt.xlim(-2, 2)
 plt.xlabel('position')
-plt.ylabel('probability')
 plt.ylim(0, max(y1) + 0.1*max(y1))
+
 plt.show()

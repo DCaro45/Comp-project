@@ -20,7 +20,7 @@ epsilon = 1.5  # change in delta_xs size from spatial lattice spacing
 bins = 100     # number of bins for histogram
 
 N_cor = 25        # number of paths to be skipped path set (due to correlation)
-N_CF = 10 ** 5    # number of updates
+N_CF = 10 ** 2    # number of updates
 
 '''determinants/shorthands'''
 n_tp = div_t * (tf - ti) + 1          # number of temporal points

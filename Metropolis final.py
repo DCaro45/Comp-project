@@ -93,15 +93,14 @@ p1, count = Metropolis(p_1, pot)
 print(p1, count/nt)
 
 """generating applying metropolis to inital path"""
+
 init = p_1
 all_ps = []
 t_counts = 0
-
 # applying metropolis to path N_CF times
 for j in range(N_CF):
     # initialising starting path
     start_p = init
-
     # applying metropolis to path N_cor times
     for i in range(U):
         new_p, counts = Metropolis(start_p, pot)

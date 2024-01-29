@@ -9,14 +9,12 @@ import os
 mass = 1   # setting mass to be 1
 
 ti = 0     # start time
-tf = 4     # finish time
-div_t = 2  # division of time points (i.e whole numbs, half, third etc))
+tf = 3     # finish time
+div_t = 3   # division of time points (i.e whole numbs, half, third etc))
 
-epsilon = 1.3  # change in delta_xs size from spatial lattice spacing
+epsilon = 1.6  # change in delta_xs size from spatial lattice spacing
 N_cor = 25        # number of paths to be skipped path set (due to correlation)
-N_CF = 10 ** 2    # number of updates
-
-bins = 100      # number of bins for histogram
+N_CF = 10 ** 5    # number of updates
 
 '''determinants/shorthands'''
 n_tp = div_t * (tf - ti) + 1          # number of temporal points
@@ -34,8 +32,8 @@ e = epsilon        # shorthand for epsilon
 T = int(Therm)     # shorthand for sweeps 1 (and integer data type)
 U = int(Update)    # shorthand for sweeps 2 (and integer data type)
 
-print('nt = ' + str(nt) + ', ' + 'a = ' + str(a) + ', ' + 't = ' + str(t) + ', ' + 'epsilon = ' + str(e) +
-      ', ' 'N_cor/Update = ' + str(N_cor) + ', ' + 'S1 = ' + str(T) + ', ' + 'N_CF = ' + str(N_CF))
+print('# temporal points = ' + str(nt) + ', ' + 'size of time step = ' + str(a) + ', ' + 'temporal points = ' + str(t) + ', ' + 'epsilon = ' + str(e) +
+      ', ' '# updates (N_cor) = ' + str(N_cor) + ', ' + 'Therm sweeps (T) = ' + str(T) + ', ' + '# paths (N_CF) = ' + str(N_CF))
 
 def pot(x):
     """simple harmonic oscillator potential"""
@@ -83,51 +81,78 @@ def Metropolis(path, potential):
 
     return path, count
 
-def pdf(x):
-    """prob density function"""
-    prob = ( np.exp( - x ** 2 / 2 ) / ( np.pi ** (1/4) ) ) ** 2
-    return prob
+def compute_G1(x,n):
+    g = 0
+    for j in range(nt):
+        jn = (j+n)%nt
+        g += x[j] * x[jn]
+    return g/nt
+
+def compute_G2(x,n):
+    g = 0
+    for j in range(nt):
+        jn = (j+n)%nt
+        g += x[j] ** 3 * x[jn] ** 3
+    return g/nt
+
+def delta_E(prop):
+    dE = []
+    for n in range(nt):
+        k = (n+1)%nt
+        dE_i = np.log(prop[n]/prop[k]) / a
+        dE.append(dE_i)
+    return dE
+
+compute_G = compute_G2
 
 p_1 = [0 for x in range(nt)]
+p_2 = [np.random.uniform(-4, 4) for x in range(nt)]
 p1, count = Metropolis(p_1, pot)
 print(p1, count/nt)
 
-"""generating applying metropolis to inital path"""
+G = compute_G(p_2, 0)
+print(G)
+
+"""Thermalising lattice"""
 init = p_1
-all_ps = []
-t_counts = 0
+array = [init]
+for i in range(T):
+    x, count = Metropolis(array[-1], pot)
+    array.append(x)
 
-# applying metropolis to path N_CF times
-for j in range(N_CF):
-    # initialising starting path
-    start_p = init
+"""generating array of G values"""
+G = np.zeros([N_CF, nt])
+count = 0
+for alpha in range(N_CF):
+    start_x = array[-1]
+    for j in range(U):
+        new_x, c = Metropolis(start_x, pot)
+        start_x = new_x
+        count += c
+    for n in range(nt):
+        G[alpha][n] = compute_G(x,n)
 
-    # applying metropolis to path N_cor times
-    for i in range(U):
-        new_p, counts = Metropolis(start_p, pot)
-        start_p = new_p
-        t_counts += counts
+Av_G = []
+for n in range(nt):
+    avg_G = 0
+    for alpha in range(N_CF):
+        avg_G += G[alpha][n]
+    avg_G = avg_G/N_CF
+    Av_G.append(avg_G)
+print('G(%d) = %g' % (n, avg_G) + ', ' + str(count/(nt*U*N_CF)))
+print(Av_G)
+dEs = delta_E(Av_G)
+dE = [1 for t in range(nt)]
 
-    # adding final path to all_ps
-    all_ps.append(start_p)
-
-print('prop of changing point = ' + str(t_counts/(nt*U*N_CF)))
-
-"""all points fromn new_ps"""
-ln = len(all_ps)
-pos = np.zeros([ln * nt])
-k = 0
-for i in range(ln):
-    for j in range(nt):
-        pos[k] = all_ps[i][j]
-        k += 1
+plt.figure(figsize=[8, 4])
+plt.plot(t, dE, linestyle='--', color='black')
+plt.scatter(t, dEs)
+plt.xlabel('t')
+plt.ylabel('$\Delta$E(t)')
+plt.show()
+dir, file = os.path.split(__file__)
+#fig.savefig(dir + '\\Images\\3Dhist.png')
 
 
-xs = np.linspace(-3, 3, len(pos))
-PDF = pdf(xs)
-V = pot(xs)
-
-counts, bins = np.histogram2d(pos, bins=bins, density=True)
-Norm = max(PDF)/max(counts) * counts
 
 

@@ -113,8 +113,8 @@ def norm(array):
 
 
 p_1 = [0 for x in range(nt)]
-p1, count1 = Metropolis(p_1, pot)
-print(p1, count1/nt)
+p1, count = Metropolis(p_1, pot)
+print(p1, count/nt)
 
 """Thermalising lattice"""
 init = p_1

@@ -129,6 +129,7 @@ def Metropolis(size, path, point, potential, energy):
 
     e_path = []
     #Conditional statement
+    'make a dS cut off'
     if d_S < 0:
         e_path = new_p
     elif d_S > 0:

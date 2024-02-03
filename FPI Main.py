@@ -13,9 +13,9 @@ tf = 10  # finish time
 
 n_t = 6         # number of temporal points (i.e whole numbs, half, third etc))
 div_x = 10       # division of spacial points
-N = int(10**7)  # number of paths seeding metropolis
+N = int(10**5)  # number of paths seeding metropolis
 
-N_fin = int(10e+5)                    # finishing value on logarithmic scale
+N_fin = int(10e+3)                    # finishing value on logarithmic scale
 nbr = 20                         # number of graphs
 
 
@@ -118,7 +118,7 @@ print(g)
 '''Calculating and plotting PDF'''
 # values
 G = prop(pot, N)
-print(G)
+#print(G)
 Norm_G = norm(G)
 y1 = Norm_G
 

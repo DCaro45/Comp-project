@@ -9,12 +9,12 @@ import os
 mass = 1   # setting mass to be 1
 
 ti = 0     # start time
-tf = 3     # finish time
-div_t = 3   # division of time points (i.e whole numbs, half, third etc))
+tf = 20     # finish time
+div_t = 2   # division of time points (i.e whole numbs, half, third etc))
 
-epsilon = 1.6  # change in delta_xs size from spatial lattice spacing
+epsilon = 1.4  # change in delta_xs size from spatial lattice spacing
 N_cor = 25        # number of paths to be skipped path set (due to correlation)
-N_CF = 10 ** 5    # number of updates
+N_CF = 10 ** 3    # number of updates
 
 '''determinants/shorthands'''
 n_tp = div_t * (tf - ti) + 1          # number of temporal points
@@ -84,75 +84,174 @@ def Metropolis(path, potential):
 def compute_G1(x,n):
     g = 0
     for j in range(nt):
-        jn = (j+n)%nt
+        jn = (j+n) % nt
         g += x[j] * x[jn]
     return g/nt
 
 def compute_G2(x,n):
     g = 0
     for j in range(nt):
-        jn = (j+n)%nt
+        jn = (j+n) % nt
         g += x[j] ** 3 * x[jn] ** 3
     return g/nt
 
+def avg(p):
+    Av = sum(p)/len(p)
+    return Av
+
+def sdev(p):
+    P = np.array(p)
+    sd = np.absolute(avg(P) ** 2 - avg(P ** 2)) ** (1/2)
+    return sd
+
 def delta_E(prop):
-    dE = []
-    for n in range(nt):
-        k = (n+1)%nt
-        dE_i = np.log(prop[n]/prop[k]) / a
-        dE.append(dE_i)
+    G = np.array(prop)
+    dE = np.log(np.absolute(G[:-1]/G[1:])) / a
     return dE
 
-compute_G = compute_G2
+'''
+def delta_E2(prop):
+    avgG = avg(G)
+    dE = np.log(np.absolute(avgG[:-1]/avgG[1:])) / a
+    return dE
+'''
 
-p_1 = [0 for x in range(nt)]
-p_2 = [np.random.uniform(-4, 4) for x in range(nt)]
+def bootstrap(G):
+    G_bootstrap = []
+    L = len(G)
+    for i in range(L):
+        alpha = rdm.randint(0, L-1)
+        G_bootstrap.append(G[alpha])
+    return G_bootstrap
+
+def bin(G, number):
+    G_binned = []
+    binsize = int(N_CF/number)
+    for i in range(0, N_CF, binsize):
+        G_avg = 0
+        for j in range(binsize):
+            if i+j >= N_CF:
+                break
+            G_avg += G[i+j]
+        G_avg = G_avg/binsize
+        G_binned.append(G_avg)
+    return G_binned
+
+compute_G = compute_G1
+
+p_1 = [0 for t in range(nt)]
+p_2 = [np.random.uniform(-4, 4) for t in range(nt)]
 p1, count = Metropolis(p_1, pot)
-print(p1, count/nt)
 
 G = compute_G(p_2, 0)
-print(G)
+#print(G)
 
 """Thermalising lattice"""
 init = p_1
-array = [init]
 for i in range(T):
-    x, count = Metropolis(array[-1], pot)
-    array.append(x)
+    x, count = Metropolis(init, pot)
+    init = x
+therm = init
 
 """generating array of G values"""
 G = np.zeros([N_CF, nt])
 count = 0
+x = therm
 for alpha in range(N_CF):
-    start_x = array[-1]
     for j in range(U):
-        new_x, c = Metropolis(start_x, pot)
-        start_x = new_x
+        new_x, c = Metropolis(x, pot)
+        x = new_x
         count += c
     for n in range(nt):
         G[alpha][n] = compute_G(x,n)
+print('prop of changing point = ' + str(count/(nt*U*N_CF)))
+print('done G')
 
-Av_G = []
+"""averaging G values"""
+Av_G = np.zeros([nt])
 for n in range(nt):
     avg_G = 0
     for alpha in range(N_CF):
         avg_G += G[alpha][n]
     avg_G = avg_G/N_CF
-    Av_G.append(avg_G)
-print('G(%d) = %g' % (n, avg_G) + ', ' + str(count/(nt*U*N_CF)))
-print(Av_G)
-dEs = delta_E(Av_G)
-dE = [1 for t in range(nt)]
+    Av_G[n] = avg_G
+
+'Binning G values'
+binned_G = bin(G, 20)
+B = binned_G
+Avg_B = avg(B)
+
+
+
+"""Calculating delta_E"""
+dE = delta_E(Av_G)       # delta_E for average G
+dE_1 = delta_E(G[0])     # delta_E for first G
+dE_2 = delta_E(Avg_B)        # delta_E for binned G
+
+
+print('done dE')
+
+"""Calculating errors"""
+'Bootstrap'
+n = 10e+0
+dE_bootstrap = np.zeros([int(n), nt - 1])
+for i in range(int(n)):
+    G_bootstrap = bootstrap(G)
+    Avg_G = avg(G_bootstrap)
+    dE_bootstrap[i] = delta_E(Avg_G)
+dE_avg = avg(dE_bootstrap)
+dE_sd = sdev(dE_bootstrap)
+
+'Binned'
+nums = [1.5**i for i in range(1, 18)]
+print(nums)
+sd_bin = np.zeros([len(nums), nt - 1])
+for i, n in enumerate(nums):
+    b = bin(G, n)
+    '''
+    avg_b = avg(b)
+    deltaE = delta_E2(avg_b)
+    sd = sdev(deltaE)
+    sd_bin[i] = sdev(deltaE)
+    '''
+    'Bootstrap'
+    n = 10e+1
+    dE_bootstrap = np.zeros([int(n), nt - 1])
+    for j in range(int(n)):
+        G_bootstrap = bootstrap(b)
+        Avg_G = avg(G_bootstrap)
+        dE_bootstrap[j] = delta_E(Avg_G)
+    sd = sdev(dE_bootstrap)
+    sd_bin[i] = sd
+plt.plot(nums, sd_bin)
+#plt.show()
+
+print('done boot')
+
+"""Plotting"""
+
+dE_analytic = [1 for t in range(nt-1)]
+ts = t[:-1]
+print(len(dE_2), len(ts))
+
 
 plt.figure(figsize=[8, 4])
-plt.plot(t, dE, linestyle='--', color='black')
-plt.scatter(t, dEs)
+plt.plot(ts, dE_analytic, linestyle='--', color='black')
+plt.scatter(ts, dE, color='red')
+plt.scatter(ts, dE_1, color='blue')
+plt.scatter(ts, dE_2, color='blue')
+plt.errorbar(ts, dE_avg, yerr=dE_sd , color='green', fmt='o', capsize=4, elinewidth=1)
 plt.xlabel('t')
 plt.ylabel('$\Delta$E(t)')
 plt.show()
 dir, file = os.path.split(__file__)
-#fig.savefig(dir + '\\Images\\3Dhist.png')
+#plt.savefig(dir + '\\Images\\delta_E2.png')
 
+#print('G(%d) = %g' % (n, avg_G) + ', ' + str(count/(nt*U*N_CF)))
+#print(Av_G)
 
+#print('avg G\n', avg(G))
+#print('Delta E\n', delta_E(G))
+#print('avg G = ' + str(Av_G) + str(sdev(Av_G)))
 
 

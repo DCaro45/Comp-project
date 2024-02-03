@@ -14,13 +14,13 @@ mass = 1   # setting mass to be 1
 
 ti = 0     # start time
 tf = 4     # finish time
-div_t = 1  # division of time points (i.e whole numbs, half, third etc))
+div_t = 2  # division of time points (i.e whole numbs, half, third etc))
 
 epsilon = 1.5  # change in delta_xs size from spatial lattice spacing
 bins = 100     # number of bins for histogram
 
 N_cor = 25        # number of paths to be skipped path set (due to correlation)
-N_CF = 10 ** 2    # number of updates
+N_CF = 10 ** 4    # number of updates
 
 '''determinants/shorthands'''
 n_tp = div_t * (tf - ti) + 1          # number of temporal points
@@ -58,18 +58,21 @@ def pot2(x, y):
 def pdf(x, y):
     """prob density function"""
     r = np.sqrt(x ** 2 + y ** 2)
-    prob = ( np.exp( - r ** 2 / 2 ) / ( np.pi ** (1/4) ) ) ** 2 - 0.05
+    prob = ( np.exp( - r ** 2 / 2 ) / ( np.pi ** (1/4) ) ) ** 2
     return prob
 
-V = pot2
+V = pot1
 
 x0 = -4
 x1 = 4
 
-X = np.linspace(x0, x1, 100)
-Y = np.linspace(x0, x1, 100)
+X = np.linspace(x0, x1, 10)
+Y = np.linspace(x0, x1, 10)
 X, Y = np.meshgrid(X, Y)
 Z = V(X, Y)
+print(Z)
+print(X)
+print(Y)
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
@@ -78,13 +81,12 @@ ax.zaxis.set_major_formatter('{x:.02f}')
 ax.tick_params(axis='z', labelcolor='red')
 plt.show()
 
-pot = pot2
+pot = pot1
 
 def actn(x, y, j, k, potential):
     """calculating energies"""
     jp = (j-1) % nt
     jn = (j+1) % nt
-
     kp = (k-1) % nt
     kn = (k+1) % nt
 
@@ -182,10 +184,9 @@ y1 = max(ypos)
 X = np.linspace(x0, x1, 100)
 Y = np.linspace(y0, y1, 100)
 X, Y = np.meshgrid(X, Y)
-#Z = pdf(X, Y)
-Z = pot(X, Y)
+Z = pdf(X, Y)
+#Z = pot(X, Y)
 
-'''
 fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
 #ax = fig.add_subplot(111, projection='3d')
 
@@ -230,7 +231,6 @@ dir, file = os.path.split(__file__)
 #fig.savefig(dir + '\\Images\\3Dhist.png')
 plt.show()
 
-'''
 
 x = xpos
 y = ypos

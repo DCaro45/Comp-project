@@ -145,6 +145,6 @@ plt.title("The Probability Density Function of a Particle in a Harmonic Oscillat
 plt.xlabel("Position")
 plt.ylabel("Probability Density")
 dir, file = os.path.split(__file__)
-fig.savefig(dir + '\\Images\\2Dhist.png')
+#fig.savefig(dir + '\\Images\\2Dhist.png')
 plt.show()
 

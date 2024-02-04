@@ -8,13 +8,13 @@ import os
 '''values'''
 mass = 1  # setting mass to be 1
 
-x0 = -2  # lower bound
-x1 = 2  # upper bound
+x0 = -4  # lower bound
+x1 = 4  # upper bound
 ti = 0  # start time
-tf = 10  # finish time
+tf = 5  # finish time
 
 n_t = 6         # number of temporal points (i.e whole numbs, half, third etc))
-div_x = 10       # division of spacial points
+div_x = 5       # division of spacial points
 N = int(10**4)  # number of paths seeding metropolis
 
 N_fin = int(10e+3)                    # finishing value on logarithmic scale
@@ -49,15 +49,46 @@ def path_gen(x_0):
         path[i] = rdm.choice(x)
     return path
 
-def pot(xs):
+def pot1(xs):
     """simple harmonic oscillator potential"""
-
     potential = 1/2 * xs**2
     return potential
 
+def pot2(xs):
+    """a simple potential analogue for the Higgs potential"""
+    a = 2
+    b = 1
+    potential = - 0.5 * a ** 2 * xs ** 2 + 0.25 * b ** 2 * xs ** 4
+    return potential
+
+def pot3(xs):
+        """ a polynomial potential with a minimum and a stationary inflection point"""
+        V = 1 / 2 * x ** 2 + 1 / 4 * x ** 4 - 1 / 20 * x ** 5
+        return V
+
+def pot4(x):
+    V = - x ** 2
+    return V
+
+def pot5(x):
+    if -5 < x < 5:
+        V = x
+    else:
+        V = 100000
+    return V
+
+def pot6(x):
+    """a potential with the same form as the higgs potential"""
+    u = 2
+    l = 1
+    V = - 0.5 * u ** 2 * x ** 2 + 0.25 * l ** 2 * x ** 4
+    return V
+
+pot = pot5
+
+
 def actn(path, potential):
     """calculating energies"""
-
     E_path = 0
     for i in range(0, nt-1):
         KE = m/2*((path[i+1]-path[i])/a)**2
@@ -112,12 +143,13 @@ def norm(array):
     else:
         return 0
 
+
 p_1 = path_gen(x[int(len(x)/2)])
 print(p_1)
 g = prop(pot, 10 * nx)
 print(g)
 
-'''Calculating and plotting PDF'''
+"""Calculating and plotting PDF"""
 # values
 G = prop(pot, N)
 #print(G)
@@ -130,7 +162,7 @@ y1 = Norm_G
 #plt.show()
 
 
-'''repeating propagator for smaller samples'''
+"""repeating propagator for smaller samples"""
 # sample size
 Ns = np.logspace(start=0, stop=e, base=base, num=nbr)
 
@@ -151,7 +183,7 @@ ys = Norm_Gs
 'plotting graphs'
 As = np.linspace(0.25, 1, nbr)    #Alpha valeus
 
-plt.figure(figsize=[20,8])
+plt.figure(figsize=[10,4])
 plt.subplot(1, 2, 1)
 for j in range(0, nbr):
     plt.plot(x, ys[j], alpha = As[j])
@@ -159,7 +191,7 @@ plt.xlabel('position')
 plt.ylabel('probability density')
 
 
-'''plot of FPI and standard formulation'''
+"""plot of FPI and standard formulation"""
 # calculate potential and analytic pdf'
 pdf_A = pdf(x)
 pdf_B = norm(pdf_A)
@@ -171,13 +203,13 @@ ys = pot(xs)
 # plotting graphs
 plt.subplot(1, 2, 2)
 plt.plot(x  , y1, label='FPI',       color='k')
-plt.plot(x  , y2, label='PDF',       color='tab:orange')
+#plt.plot(x  , y2, label='PDF',       color='tab:orange')
 plt.plot(xs , ys, label='Potential', color='tab:blue')
 plt.legend()
 plt.grid()
-plt.xlim(-2, 2)
+plt.xlim(x0, x1)
 plt.xlabel('position')
-plt.ylim(0, max(y1) + 0.1*max(y1))
+plt.ylim(-0.2, max(y1) + 0.1*max(y1))
 
 dir, file = os.path.split(__file__)
 plt.savefig(dir + '\\Images\\hist-Brute_force.png')

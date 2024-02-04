@@ -122,11 +122,11 @@ def Metropolis(path_r, angle, potential):
             r = rdm.random()
             W = np.exp(-ds)
             if ds < 0 or W > r:
-                path_x = eval_px
-                path_y = eval_py
+                path_r = eval_r
+                angle = eval_a
                 count += 1
 
-    return path_x, path_y, count
+    return path_r, angle, count
 
 px_1 = [0 for x in range(nt)]
 py_1 = [0 for y in range(nt)]
@@ -262,4 +262,3 @@ im.set_data(xcenters, ycenters, H)
 ax.add_image(im)
 plt.show()
 
-'''

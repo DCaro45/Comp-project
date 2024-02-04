@@ -94,7 +94,7 @@ p_1 = [0 for x in range(nt)]
 p1, count = Metropolis(p_1, pot)
 print(p1, count/nt)
 
-"""generating applying metropolis to inital path"""
+"""generating applying metropolis to initial path"""
 
 init = p_1
 all_ps = []

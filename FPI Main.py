@@ -16,7 +16,7 @@ div_x = 10       # division of spacial points
 N = int(10**5)  # number of paths seeding metropolis
 
 N_fin = int(10e+3)                    # finishing value on logarithmic scale
-nbr = 20                         # number of graphs
+nbr = 20                             # number of graphs
 
 
 '''determinants/shorthands'''
@@ -91,7 +91,7 @@ def prop(potential, samples):
                 S = actn(p, potential)
                 W = wght(S)
                 propagator[j] += W
-    print(run, rem, run * nx, samples)
+    #print(run, rem, run * nx, samples)
     return propagator
 
 def pdf(xs):
@@ -125,7 +125,7 @@ y1 = Norm_G
 # graph
 plt.figure()
 plt.plot(x, y1)
-plt.show()
+#plt.show()
 
 
 '''repeating propagator for smaller samples'''
@@ -176,5 +176,4 @@ plt.grid()
 plt.xlim(-2, 2)
 plt.xlabel('position')
 plt.ylim(0, max(y1) + 0.1*max(y1))
-
 plt.show()

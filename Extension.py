@@ -20,7 +20,7 @@ epsilon = 1.5  # change in delta_xs size from spatial lattice spacing
 bins = 100     # number of bins for histogram
 
 N_cor = 25        # number of paths to be skipped path set (due to correlation)
-N_CF = 10 ** 4    # number of updates
+N_CF = 10 ** 4      # number of updates
 
 '''determinants/shorthands'''
 n_tp = div_t * (tf - ti) + 1          # number of temporal points
@@ -51,14 +51,14 @@ def pot2(x, y):
     u = 3.5
     l = 1
     r = np.sqrt(x ** 2 + y ** 2)
-    exp = 2
-    V = - 0.5 * u ** 2 * r ** exp + 0.25 * l ** 2 * r ** (2 * exp)
+    V = - 0.5 * u ** 2 * r ** 2 + 0.25 * l ** 2 * r ** 4
     return V
 
 def pdf(x, y):
     """prob density function"""
     r = np.sqrt(x ** 2 + y ** 2)
-    prob = ( np.exp( - r ** 2 / 2 ) / ( np.pi ** (1/4) ) ) ** 2
+    #prob = np.exp(- r ** 2) /np.pi
+    prob = np.exp( - r ** 2)/(np.pi ** (1/2))
     return prob
 
 V = pot1
@@ -66,20 +66,21 @@ V = pot1
 x0 = -4
 x1 = 4
 
-X = np.linspace(x0, x1, 10)
-Y = np.linspace(x0, x1, 10)
+X = np.linspace(x0, x1, 250)
+Y = np.linspace(x0, x1, 250)
 X, Y = np.meshgrid(X, Y)
 Z = V(X, Y)
-print(Z)
-print(X)
-print(Y)
+
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 ax.plot_surface(X, Y, Z, cmap=cm.coolwarm, linewidth=0, antialiased=False)
 ax.zaxis.set_major_formatter('{x:.02f}')
 ax.tick_params(axis='z', labelcolor='red')
-plt.show()
+ax.set_xlabel('X')
+ax.set_ylabel('Y')
+ax.set_zlabel('Potential')
+#plt.show()
 
 pot = pot1
 
@@ -174,8 +175,7 @@ for i in range(ln):
 
 print('done')
 
-x = xpos
-y = ypos
+
 x0 = min(xpos)
 x1 = max(xpos)
 y0 = min(ypos)
@@ -192,13 +192,9 @@ fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
 
 hist, xedges, yedges = np.histogram2d(xpos, ypos, bins=(bins,bins))#, density=True)
 Norm = np.max(Z)/np.max(hist) * hist
-#Norm = hist
 
-print(x0, min(xedges), x1,  max(xedges))
-print(y0, min(yedges), y1, max(yedges))
-#print(xedges, yedges)
-#print(xedges[:-1], xedges[1:])
-#print(yedges[:-1], yedges[1:])
+#print(x0, min(xedges), x1,  max(xedges))
+#print(y0, min(yedges), y1, max(yedges))
 
 x, y = np.meshgrid(xedges[:-1]+xedges[1:], yedges[:-1]+yedges[1:])
 
@@ -206,8 +202,8 @@ x = x.flatten()/2
 y = y.flatten()/2
 z = np.zeros_like (x)
 
-print(x0, min(x), x1, max(x))
-print(y0, min(y), y1, max(y))
+#print(x0, min(x), x1, max(x))
+#print(y0, min(y), y1, max(y))
 
 dx = xedges [1] - xedges [0]
 dy = yedges [1] - yedges [0]
@@ -224,42 +220,47 @@ ax.plot_surface(X, Y, Z, cmap=cm.coolwarm, alpha=0.3, linewidth=0, antialiased=F
 ax.zaxis.set_major_formatter('{x:.02f}')
 ax.tick_params(axis='z', labelcolor='red')
 
-#plt.title("X vs. Y Amplitudes for ____ Data")
-plt.xlabel("My X data source")
-plt.ylabel("My Y data source")
+plt.title("The Probability Density for a Harmonic Oscillator Potential")
+plt.xlabel("x position")
+plt.ylabel("y position")
+ax.set_zlabel("Probability Density")
 dir, file = os.path.split(__file__)
 #fig.savefig(dir + '\\Images\\3Dhist.png')
+#txt=("A 2D Histogram of the location of points in paths produced via the Metropolis Algorithm within a Harmonic "
+#     "Oscillator Potential."
+#     "The 3D surface plot is the analytic solution to probability density function of the potential."
+#     )
+#plt.figtext(0.5, 0.01, txt, wrap=True, horizontalalignment='center', fontsize=12)
 plt.show()
 
 
 x = xpos
 y = ypos
-
 r = 3.5
-xs = np.linspace(- r, r, 100)
 
+xs = np.linspace(- r, r, 100)
 
 H, xedges, yedges = np.histogram2d(x, y, bins=bins)
 H = H.T
 
-fig = plt.figure(figsize=(7, 3))
-ax = fig.add_subplot(131, title='imshow: square bins')
-plt.imshow(H, interpolation='nearest', origin='lower',
-        extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
+fig = plt.figure(figsize=(6, 6))
+#ax = fig.add_subplot(131, title='imshow: square bins')
+#plt.imshow(H, interpolation='nearest', origin='lower',
+ #       extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
 
-ax = fig.add_subplot(132, title='pcolormesh: actual edges',
-        aspect='equal')
+ax = fig.add_subplot(title='Histogram Contour')
+#        ,aspect='equal')
 X, Y = np.meshgrid(xedges, yedges)
 ax.pcolormesh(X, Y, H)
-plt.plot(xs, - (r**2 - xs**2) ** (1/2), 'k-')
-plt.plot(xs, (r**2 - xs**2) ** (1/2), 'k-')
+#plt.plot(xs, - (r**2 - xs**2) ** (1/2), 'k-')
+#plt.plot(xs, (r**2 - xs**2) ** (1/2), 'k-')
 
-ax = fig.add_subplot(133, title='NonUniformImage: interpolated',
-        aspect='equal', xlim=xedges[[0, -1]], ylim=yedges[[0, -1]])
+#ax = fig.add_subplot(133, title='NonUniformImage: interpolated',
+#        aspect='equal', xlim=xedges[[0, -1]], ylim=yedges[[0, -1]])
 im = NonUniformImage(ax, interpolation='bilinear')
-xcenters = (xedges[:-1] + xedges[1:]) / 2
-ycenters = (yedges[:-1] + yedges[1:]) / 2
-im.set_data(xcenters, ycenters, H)
-ax.add_image(im)
+#xcenters = (xedges[:-1] + xedges[1:]) / 2
+#ycenters = (yedges[:-1] + yedges[1:]) / 2
+#im.set_data(xcenters, ycenters, H)
+#ax.add_image(im)
 plt.show()
 

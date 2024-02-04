@@ -14,9 +14,9 @@ div_t = 2  # division of time points (i.e whole numbs, half, third etc))
 
 epsilon = 1.3  # change in delta_xs size from spatial lattice spacing
 N_cor = 25        # number of paths to be skipped path set (due to correlation)
-N_CF = 10 ** 5    # number of updates
+N_CF = 10 ** 4    # number of updates
 
-bins = 100      # number of bins for histogram
+bins = 1000      # number of bins for histogram
 
 '''determinants/shorthands'''
 n_tp = div_t * (tf - ti) + 1          # number of temporal points
@@ -35,12 +35,18 @@ T = int(Therm)     # shorthand for sweeps 1 (and integer data type)
 U = int(Update)    # shorthand for sweeps 2 (and integer data type)
 
 print('nt = ' + str(nt) + ', ' + 'a = ' + str(a) + ', ' + 't = ' + str(t) + ', ' + 'epsilon = ' + str(e) +
-      ', ' 'N_cor/Update = ' + str(N_cor) + ', ' + 'S1 = ' + str(T) + ', ' + 'N_CF = ' + str(N_CF))
+      ', ' 'N_cor/Update = ' + str(N_cor) + ', ' + 'Thermal sweep = ' + str(T) + ', ' + 'N_CF = ' + str(N_CF))
 
 def pot(x):
     """simple harmonic oscillator potential"""
     V = 1/2 * x ** 2
     return V
+
+
+def pdf(x):
+    """prob density function"""
+    prob = np.exp(- x ** 2) / (np.pi ** (1/2))
+    return prob
 
 def actn(x, j, potential):
     """calculating energies"""
@@ -65,28 +71,24 @@ def Metropolis(path, potential):
     for j, x in enumerate(path):
         # creating a perturbed path from initial path
         dx = rdm.uniform(-e, e)
-        xP = x + dx
+
         eval_p = path.copy()
-        eval_p[j] = xP
+        eval_p[j] = x + dx
 
         # calculating actions
         S1 = actn(path, j, potential)
         S2 = actn(eval_p, j, potential)
-        ds = S2 - S1
+        dS = S2 - S1
 
         # applying metropolis logic
         r = rdm.random()
-        W = np.exp(-ds)
-        if ds < 0 or W > r:
+        W = np.exp(-dS)
+        if dS < 0 or W > r:
             path = eval_p
             count += 1
 
     return path, count
 
-def pdf(x):
-    """prob density function"""
-    prob = ( np.exp( - x ** 2 / 2 ) / ( np.pi ** (1/4) ) ) ** 2
-    return prob
 
 p_1 = [0 for x in range(nt)]
 p1, count = Metropolis(p_1, pot)
@@ -132,18 +134,23 @@ Norm = max(PDF)/max(counts) * counts
 fig, ax1 = plt.subplots()
 
 ax1.stairs(Norm, bins, fill=True, label='Monte Carlo integral')
-ax1.tick_params(axis='y', labelcolor='red')
-ax1.plot(xs, PDF, color='tab:orange', label='analytic solution')
+ax1.tick_params(axis='y', labelcolor='tab:orange')
+ax1.plot(xs, PDF, color='tab:orange', label='Analytic solution')
+ax1.set_xlabel('Position')
+ax1.set_ylabel('Probability Density', color='black')
 plt.legend()
 ax2 = ax1.twinx()
-ax2.plot(xs, V, color='tab:green', label='potential')
-ax2.tick_params(axis='y', labelcolor='tab:green')
+ax2.plot(xs, V, color='red', label='Potential')
+ax2.tick_params(axis='y', labelcolor='red')
+ax2.set_ylabel('Potential', color='black')
 plt.legend(loc='upper left')
 
 fig.tight_layout()
-plt.title("The Probability Density Function of a Particle in a Harmonic Oscillator Potential")
-plt.xlabel("Position")
-plt.ylabel("Probability Density")
+plt.title("The Probability Density Within a Harmonic Oscillator Potential")
+#txt = ("The Probability Density Function of a Particle in a Harmonic Oscillator Potential Calculated Via The "
+#       "Metropolis Algorithm"
+#       )
+#plt.figtext(0.5, 0, txt, wrap=True, horizontalalignment='center', fontsize=12)
 dir, file = os.path.split(__file__)
 #fig.savefig(dir + '\\Images\\2Dhist.png')
 plt.show()

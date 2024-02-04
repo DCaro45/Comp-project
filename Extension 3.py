@@ -14,7 +14,7 @@ div_t = 2   # division of time points (i.e whole numbs, half, third etc))
 
 epsilon = 1.4  # change in delta_xs size from spatial lattice spacing
 N_cor = 25        # number of paths to be skipped path set (due to correlation)
-N_CF = 10 ** 3    # number of updates
+N_CF = 10 ** 3       # number of updates
 
 '''determinants/shorthands'''
 n_tp = div_t * (tf - ti) + 1          # number of temporal points
@@ -175,6 +175,7 @@ for n in range(nt):
         avg_G += G[alpha][n]
     avg_G = avg_G/N_CF
     Av_G[n] = avg_G
+Avg_G = avg(G)
 
 'Binning G values'
 binned_G = bin(G, 20)
@@ -186,7 +187,8 @@ Avg_B = avg(B)
 """Calculating delta_E"""
 dE = delta_E(Av_G)       # delta_E for average G
 dE_1 = delta_E(G[0])     # delta_E for first G
-dE_2 = delta_E(Avg_B)        # delta_E for binned G
+dE_2 = delta_E(Avg_B)    # delta_E for binned G
+dE_3 = delta_E(Avg_G)    # delta_E for average G (using function)
 
 
 print('done dE')
@@ -223,7 +225,7 @@ for i, n in enumerate(nums):
         dE_bootstrap[j] = delta_E(Avg_G)
     sd = sdev(dE_bootstrap)
     sd_bin[i] = sd
-plt.plot(nums, sd_bin)
+#plt.plot(nums, sd_bin)
 #plt.show()
 
 print('done boot')
@@ -237,15 +239,25 @@ print(len(dE_2), len(ts))
 
 plt.figure(figsize=[8, 4])
 plt.plot(ts, dE_analytic, linestyle='--', color='black')
-plt.scatter(ts, dE, color='red')
-plt.scatter(ts, dE_1, color='blue')
-plt.scatter(ts, dE_2, color='blue')
-plt.errorbar(ts, dE_avg, yerr=dE_sd , color='green', fmt='o', capsize=4, elinewidth=1)
+#plt.scatter(ts, dE, color='red', alpha=0.5, label='Delta_E')
+#plt.scatter(ts, dE_1, color='blue', alpha=0.2, label='Delta_E calculated from first G values')
+#plt.scatter(ts, dE_2, color='orange', label='Delta_E using binned G')
+#plt.scatter(ts, dE_3, color='orange', label='Delta_E')
+plt.errorbar(ts, dE_avg, yerr=dE_sd, color='green', fmt='o', capsize=4, elinewidth=1, label='Delta_E using bootstrap method')
+
 plt.xlabel('t')
 plt.ylabel('$\Delta$E(t)')
-plt.show()
+plt.legend()
+plt.title('Numerically evaluated energy difference between the ground and first excited state')
+#txt = ('The energy difference as a function of time calculated from the value of the propagator of paths produced by '
+#       'the Metropolis Algorithm within a Harmonic Oscillator Potential'
+#       )
+#plt.figtext(0.5, 0.2, txt, wrap=True, horizontalalignment='center', fontsize=12)
 dir, file = os.path.split(__file__)
 #plt.savefig(dir + '\\Images\\delta_E2.png')
+
+plt.show()
+
 
 #print('G(%d) = %g' % (n, avg_G) + ', ' + str(count/(nt*U*N_CF)))
 #print(Av_G)

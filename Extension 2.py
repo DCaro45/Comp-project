@@ -12,10 +12,10 @@ tf = 4     # finish time
 div_t = 2  # division of time points (i.e whole numbs, half, third etc))
 
 epsilon = 1.4  # change in delta_xs size from spatial lattice spacing
-bins = 100     # number of bins for histogram
+bins = 1000     # number of bins for histogram
 
-N_cor = 500        # number of paths to be skipped path set (due to correlation)
-N_CF = 10 ** 3    # number of updates
+N_cor = 25        # number of paths to be skipped path set (due to correlation)
+N_CF = 10 ** 4    # number of updates
 
 '''determinants/shorthands'''
 n_tp = div_t * (tf - ti) + 1          # number of temporal points
@@ -55,8 +55,10 @@ def pot5(x):
     return V
 
 def pot6(x):
-    """a potential with two large minima"""
-    V = - x ** 4 - 5 * x ** 2 + x ** 6
+    """a potential with the same form as the higgs potential"""
+    u = 2
+    l = 1
+    V = - 0.5 * u ** 2 * x ** 2 + 0.25 * l ** 2 * x ** 4
     return V
 
 pot = pot6
@@ -154,10 +156,18 @@ for x in xs:
 fig, ax1 = plt.subplots()
 
 ax1.hist(pos, bins)
-ax1.tick_params(axis='y', labelcolor='red')
+ax1.tick_params(axis='y', labelcolor='blue')
+ax1.set_xlabel('Position')
+ax1.set_ylabel('Count', color='black')
 ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
 ax2.plot(xs, V, color='red')
-ax2.tick_params(axis='y', labelcolor='blue')
-
+ax2.tick_params(axis='y', labelcolor='red')
+ax2.set_ylabel('Potential', color='black')
 fig.tight_layout()  # otherwise the right y-label is slightly clipped
+plt.title('A Histogram of Points Produced from the Metropolis Algorithm Within a Higgs Type Potential ')
+#txt = ('A histogram of points produced by the Metropolis Algorithm
+#        within a Higgs type potential'
+#        )
+#plt.figtext(0.5, 0.2, txt, wrap=True, horizontalalignment='center', fontsize=12)
+
 plt.show()

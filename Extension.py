@@ -14,13 +14,13 @@ mass = 1   # setting mass to be 1
 
 ti = 0     # start time
 tf = 4     # finish time
-div_t = 2  # division of time points (i.e whole numbs, half, third etc))
+div_t = 1  # division of time points (i.e whole numbs, half, third etc))
 
-epsilon = 1.5  # change in delta_xs size from spatial lattice spacing
-bins = 100     # number of bins for histogram
+epsilon = 1.4  # change in delta_xs size from spatial lattice spacing
+bins = 200     # number of bins for histogram
 
-N_cor = 25        # number of paths to be skipped path set (due to correlation)
-N_CF = 10 ** 4      # number of updates
+N_cor = 3        # number of paths to be skipped path set (due to correlation)
+N_CF = 10 ** 5      # number of updates
 
 '''determinants/shorthands'''
 n_tp = div_t * (tf - ti) + 1          # number of temporal points
@@ -57,12 +57,13 @@ def pot2(x, y):
 def pdf(x, y):
     """prob density function"""
     r = np.sqrt(x ** 2 + y ** 2)
-    #prob = np.exp(- r ** 2) /np.pi
-    prob = np.exp( - r ** 2)/(np.pi ** (1/2))
+    prob = np.exp(- r ** 2) /np.pi
+    #prob = np.exp( - r ** 2)/(np.pi ** (1/2))
     return prob
 
 V = pot1
 
+'''
 x0 = -4
 x1 = 4
 
@@ -81,6 +82,7 @@ ax.set_xlabel('X')
 ax.set_ylabel('Y')
 ax.set_zlabel('Potential')
 #plt.show()
+'''
 
 pot = pot1
 
@@ -138,12 +140,15 @@ print(px1, py1, count/(nt**2))
 """Thermalising lattice"""
 init_x = px_1
 init_y = py_1
+'''
 array_x = [init_x]
 array_y = [init_y]
 for i in range(T):
     new_px, new_py, counts = Metropolis(array_x[-1], array_y[-1], pot)
     array_x.append(new_px)
     array_y.append(new_py)
+'''
+
 
 """generating paths and applying metropolis"""
 all_ps_x = []
@@ -190,7 +195,7 @@ Z = pdf(X, Y)
 fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
 #ax = fig.add_subplot(111, projection='3d')
 
-hist, xedges, yedges = np.histogram2d(xpos, ypos, bins=(bins,bins))#, density=True)
+hist, xedges, yedges = np.histogram2d(xpos, ypos, bins=bins)#, density=True)
 Norm = np.max(Z)/np.max(hist) * hist
 
 #print(x0, min(xedges), x1,  max(xedges))
@@ -224,13 +229,14 @@ plt.title("The Probability Density for a Harmonic Oscillator Potential")
 plt.xlabel("x position")
 plt.ylabel("y position")
 ax.set_zlabel("Probability Density")
-dir, file = os.path.split(__file__)
-#fig.savefig(dir + '\\Images\\3Dhist.png')
 #txt=("A 2D Histogram of the location of points in paths produced via the Metropolis Algorithm within a Harmonic "
 #     "Oscillator Potential."
 #     "The 3D surface plot is the analytic solution to probability density function of the potential."
 #     )
 #plt.figtext(0.5, 0.01, txt, wrap=True, horizontalalignment='center', fontsize=12)
+
+dir, file = os.path.split(__file__)
+fig.savefig(dir + '\\Images\\3Dhist.png')
 plt.show()
 
 

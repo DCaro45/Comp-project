@@ -3,6 +3,7 @@
 import numpy as np
 import random as rdm
 import matplotlib.pyplot as plt
+import os
 
 '''values'''
 mass = 1   # setting mass to be 1
@@ -15,7 +16,7 @@ epsilon = 1.4  # change in delta_xs size from spatial lattice spacing
 bins = 1000     # number of bins for histogram
 
 N_cor = 25        # number of paths to be skipped path set (due to correlation)
-N_CF = 10 ** 4    # number of updates
+N_CF = 10 ** 6    # number of updates
 
 '''determinants/shorthands'''
 n_tp = div_t * (tf - ti) + 1          # number of temporal points
@@ -170,4 +171,6 @@ plt.title('A Histogram of Points Produced from the Metropolis Algorithm Within a
 #        )
 #plt.figtext(0.5, 0.2, txt, wrap=True, horizontalalignment='center', fontsize=12)
 
+dir, file = os.path.split(__file__)
+fig.savefig(dir + '\\Images\\Hist-Higgs.png')
 plt.show()

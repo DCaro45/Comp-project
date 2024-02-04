@@ -14,7 +14,7 @@ div_t = 2   # division of time points (i.e whole numbs, half, third etc))
 
 epsilon = 1.4  # change in delta_xs size from spatial lattice spacing
 N_cor = 25        # number of paths to be skipped path set (due to correlation)
-N_CF = 10 ** 3       # number of updates
+N_CF = 10 ** 5       # number of updates
 
 '''determinants/shorthands'''
 n_tp = div_t * (tf - ti) + 1          # number of temporal points
@@ -204,6 +204,13 @@ for i in range(int(n)):
 dE_avg = avg(dE_bootstrap)
 dE_sd = sdev(dE_bootstrap)
 
+#print('G(%d) = %g' % (n, avg_G) + ', ' + str(count/(nt*U*N_CF)))
+#print(Av_G)
+
+#print('avg G\n', avg(G))
+#print('Delta E\n', delta_E(G))
+#print('avg G = ' + str(Av_G) + str(sdev(Av_G)))
+
 'Binned'
 nums = [1.5**i for i in range(1, 18)]
 print(nums)
@@ -230,11 +237,13 @@ for i, n in enumerate(nums):
 
 print('done boot')
 
+
+
 """Plotting"""
 
 dE_analytic = [1 for t in range(nt-1)]
 ts = t[:-1]
-print(len(dE_2), len(ts))
+#print(len(dE_2), len(ts))
 
 
 plt.figure(figsize=[8, 4])
@@ -253,17 +262,10 @@ plt.title('Numerically evaluated energy difference between the ground and first 
 #       'the Metropolis Algorithm within a Harmonic Oscillator Potential'
 #       )
 #plt.figtext(0.5, 0.2, txt, wrap=True, horizontalalignment='center', fontsize=12)
-dir, file = os.path.split(__file__)
-#plt.savefig(dir + '\\Images\\delta_E2.png')
 
+dir, file = os.path.split(__file__)
+plt.savefig(dir + '\\Images\\delta_E.png')
 plt.show()
 
-
-#print('G(%d) = %g' % (n, avg_G) + ', ' + str(count/(nt*U*N_CF)))
-#print(Av_G)
-
-#print('avg G\n', avg(G))
-#print('Delta E\n', delta_E(G))
-#print('avg G = ' + str(Av_G) + str(sdev(Av_G)))
 
 

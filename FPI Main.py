@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math as mt
 import random as rdm
+import os
+
 
 '''values'''
 mass = 1  # setting mass to be 1
@@ -13,7 +15,7 @@ tf = 10  # finish time
 
 n_t = 6         # number of temporal points (i.e whole numbs, half, third etc))
 div_x = 10       # division of spacial points
-N = int(10**5)  # number of paths seeding metropolis
+N = int(10**4)  # number of paths seeding metropolis
 
 N_fin = int(10e+3)                    # finishing value on logarithmic scale
 nbr = 20                             # number of graphs
@@ -123,8 +125,8 @@ Norm_G = norm(G)
 y1 = Norm_G
 
 # graph
-plt.figure()
-plt.plot(x, y1)
+#plt.figure()
+#plt.plot(x, y1)
 #plt.show()
 
 
@@ -176,4 +178,7 @@ plt.grid()
 plt.xlim(-2, 2)
 plt.xlabel('position')
 plt.ylim(0, max(y1) + 0.1*max(y1))
+
+dir, file = os.path.split(__file__)
+plt.savefig(dir + '\\Images\\hist-Brute_force.png')
 plt.show()

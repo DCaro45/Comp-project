@@ -80,9 +80,14 @@ def actn(x, y, j, k, potential):
     kp = (k-1) % N
     kn = (k+1) % N
 
-    r = np.sqrt(x[j] ** 2 + y[k] ** 2)
-    rp = np.sqrt(x[jp] ** 2 + y[kp] ** 2)
-    rn = np.sqrt(x[jn] ** 2 + y[kn] ** 2)
+    Set = (1,-1)
+    A = np.random.choice(Set)
+    B = np.random.choice(Set)
+    C = np.random.choice(Set)
+
+    r = A * np.sqrt(x[j] ** 2 + y[k] ** 2)
+    rp = B * np.sqrt(x[jp] ** 2 + y[kp] ** 2)
+    rn = C * np.sqrt(x[jn] ** 2 + y[kn] ** 2)
 
     KE = m * r * (r - rp - rn) / (a ** 2)
     PE = potential(x[j], y[k])

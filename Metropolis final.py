@@ -14,7 +14,7 @@ div_t = 2  # division of time points (i.e whole numbs, half, third etc))
 
 epsilon = 1.3  # change in delta_xs size from spatial lattice spacing
 N_cor = 25        # number of paths to be skipped path set (due to correlation)
-N_CF = 10 ** 4    # number of updates
+N_CF = 10 ** 6    # number of updates
 
 bins = 1000      # number of bins for histogram
 
@@ -151,7 +151,8 @@ plt.title("The Probability Density Within a Harmonic Oscillator Potential")
 #       "Metropolis Algorithm"
 #       )
 #plt.figtext(0.5, 0, txt, wrap=True, horizontalalignment='center', fontsize=12)
+
 dir, file = os.path.split(__file__)
-#fig.savefig(dir + '\\Images\\2Dhist.png')
+fig.savefig(dir + '\\Images\\Hist-Harmonic.png')
 plt.show()
 

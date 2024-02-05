@@ -137,7 +137,7 @@ def bin(G, number):
         G_binned.append(G_avg)
     return G_binned
 
-compute_G = compute_G1
+compute_G = compute_G2
 
 p_1 = [0 for t in range(nt)]
 p_2 = [np.random.uniform(-4, 4) for t in range(nt)]
@@ -252,19 +252,21 @@ plt.plot(ts, dE_analytic, linestyle='--', color='black')
 #plt.scatter(ts, dE_1, color='blue', alpha=0.2, label='Delta_E calculated from first G values')
 #plt.scatter(ts, dE_2, color='orange', label='Delta_E using binned G')
 #plt.scatter(ts, dE_3, color='orange', label='Delta_E')
-plt.errorbar(ts, dE_avg, yerr=dE_sd, color='green', fmt='o', capsize=4, elinewidth=1, label='Delta_E using bootstrap method')
+#plt.errorbar(ts, dE_avg, yerr=dE_sd, color='green', fmt='o', capsize=4, elinewidth=1, label='Delta_E using bootstrap method')
+plt.errorbar(ts, dE_avg, yerr=dE_sd, color='blue', fmt='o', capsize=4, elinewidth=1, label='Delta_E from bootstrap method using x^3')
+
 
 plt.xlabel('t')
 plt.ylabel('$\Delta$E(t)')
 plt.legend()
-plt.title('Numerically evaluated energy difference between the ground and first excited state')
+plt.title('Numerically Evaluated Energy Difference Between the Ground and First Excited State')
 #txt = ('The energy difference as a function of time calculated from the value of the propagator of paths produced by '
 #       'the Metropolis Algorithm within a Harmonic Oscillator Potential'
 #       )
 #plt.figtext(0.5, 0.2, txt, wrap=True, horizontalalignment='center', fontsize=12)
 
 dir, file = os.path.split(__file__)
-plt.savefig(dir + '\\Images\\delta_E.png')
+plt.savefig(dir + '\\Images\\delta_E_G2.png')
 plt.show()
 
 

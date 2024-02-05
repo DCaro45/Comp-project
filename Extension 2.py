@@ -164,12 +164,12 @@ ax1.hist(pos, bins)
 ax1.tick_params(axis='y', labelcolor='blue')
 ax1.set_xlabel('Position')
 ax1.set_ylabel('Count', color='black')
+ax1.set_title('A Histogram of Points from the Metropolis Algorithm Within a Higgs Type Potential')
 ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
 ax2.plot(xs, V, color='red')
 ax2.tick_params(axis='y', labelcolor='red')
 ax2.set_ylabel('Potential', color='black')
 fig.tight_layout()  # otherwise the right y-label is slightly clipped
-plt.title('A Histogram of Points Produced from the Metropolis Algorithm Within a Higgs Type Potential ')
 #txt = ('A histogram of points produced by the Metropolis Algorithm
 #        within a Higgs type potential'
 #        )

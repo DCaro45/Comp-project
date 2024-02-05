@@ -12,10 +12,10 @@ mass = 1   # setting mass to be 1
 
 ti = 0     # start time
 tf = 4     # finish time
-div_t = 2  # division of time points (i.e whole numbs, half, third etc))
+div_t = 1  # division of time points (i.e whole numbs, half, third etc))
 
 epsilon = 1.3  # change in delta_xs size from spatial lattice spacing
-N_cor = 20        # number of paths to be skipped path set (due to correlation)
+N_cor = 5        # number of paths to be skipped path set (due to correlation)
 N_CF = 10 ** 4    # number of updates
 
 bins = 100     # number of bins for histogram
@@ -80,14 +80,9 @@ def actn(x, y, j, k, potential):
     kp = (k-1) % N
     kn = (k+1) % N
 
-    Set = (1,-1)
-    A = np.random.choice(Set)
-    B = np.random.choice(Set)
-    C = np.random.choice(Set)
-
-    r = A * np.sqrt(x[j] ** 2 + y[k] ** 2)
-    rp = B * np.sqrt(x[jp] ** 2 + y[kp] ** 2)
-    rn = C * np.sqrt(x[jn] ** 2 + y[kn] ** 2)
+    r = np.sqrt(x[j] ** 2 + y[k] ** 2)
+    rp = np.sqrt(x[jp] ** 2 + y[kp] ** 2)
+    rn = np.sqrt(x[jn] ** 2 + y[kn] ** 2)
 
     KE = m * r * (r - rp - rn) / (a ** 2)
     PE = potential(x[j], y[k])
@@ -170,16 +165,24 @@ X = np.linspace(-4, 4, 100)
 Y = np.linspace(-4, 4, 100)
 X, Y = np.meshgrid(X, Y)
 Z = pdf(X, Y)
+#Z = pot(X, Y)
+
 
 fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
+#ax = fig.add_subplot(111, projection='3d')
 hist, xedges, yedges = np.histogram2d(xpos, ypos, bins=bins)#, density=True)
 Norm = np.max(Z)/np.max(hist) * hist
 
+#print(x0, min(xedges), x1,  max(xedges))
+#print(y0, min(yedges), y1, max(yedges))
 
 x, y = np.meshgrid(xedges[:-1]+xedges[1:], yedges[:-1]+yedges[1:])
 x = x.flatten()/2
 y = y.flatten()/2
 z = np.zeros_like (x)
+
+#print(x0, min(x), x1, max(x))
+#print(y0, min(y), y1, max(y))
 
 
 dx = xedges [1] - xedges [0]
@@ -192,10 +195,33 @@ rgba = [cmap((k-min_height)/max_height) for k in dz]
 
 ax.bar3d(x, y, z, dx, dy, dz, color=rgba, zsort='average')
 ax.plot_surface(X, Y, Z, cmap=cm.coolwarm, alpha=0.3, linewidth=0, antialiased=False)
+#ax.zaxis.set_major_locator(LinearLocator(10))
 ax.zaxis.set_major_formatter('{x:.02f}')
 ax.tick_params(axis='z', labelcolor='red')
 #plt.title("X vs. Y Amplitudes for ____ Data")
 plt.xlabel("My X data source")
 plt.ylabel("My Y data source")
 dir, file = os.path.split(__file__)
+plt.show()
+
+fig = plt.figure(figsize=(6, 6))
+# ax = fig.add_subplot(131, title='imshow: square bins')
+# plt.imshow(H, interpolation='nearest', origin='lower',
+#       extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
+
+ax = fig.add_subplot(title='Histogram Contour')
+#        ,aspect='equal')
+X, Y = np.meshgrid(xedges, yedges)
+ax.pcolormesh(X, Y, H)
+# plt.plot(xs, - (r**2 - xs**2) ** (1/2), 'k-')
+# plt.plot(xs, (r**2 - xs**2) ** (1/2), 'k-')
+
+# ax = fig.add_subplot(133, title='NonUniformImage: interpolated',
+#        aspect='equal', xlim=xedges[[0, -1]], ylim=yedges[[0, -1]])
+im = NonUniformImage(ax, interpolation='bilinear')
+# xcenters = (xedges[:-1] + xedges[1:]) / 2
+# ycenters = (yedges[:-1] + yedges[1:]) / 2
+# im.set_data(xcenters, ycenters, H)
+# ax.add_image(im)
+
 plt.show()

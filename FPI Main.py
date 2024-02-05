@@ -15,9 +15,9 @@ tf = 5  # finish time
 
 n_t = 6         # number of temporal points (i.e whole numbs, half, third etc))
 div_x = 5       # division of spacial points
-N = int(10**4)  # number of paths seeding metropolis
+N = int(10**8)  # number of paths seeding metropolis
 
-N_fin = int(10e+3)                    # finishing value on logarithmic scale
+N_fin = int(10e+6)                    # finishing value on logarithmic scale
 nbr = 20                             # number of graphs
 
 
@@ -49,21 +49,21 @@ def path_gen(x_0):
         path[i] = rdm.choice(x)
     return path
 
-def pot1(xs):
+def pot1(x):
     """simple harmonic oscillator potential"""
-    potential = 1/2 * xs**2
+    potential = 1/2 * x **2
     return potential
 
-def pot2(xs):
+def pot2(x):
     """a simple potential analogue for the Higgs potential"""
     a = 2
     b = 1
-    potential = - 0.5 * a ** 2 * xs ** 2 + 0.25 * b ** 2 * xs ** 4
+    potential = - 0.5 * a ** 2 * x ** 2 + 0.25 * b ** 2 * x ** 4
     return potential
 
-def pot3(xs):
+def pot3(x):
         """ a polynomial potential with a minimum and a stationary inflection point"""
-        V = 1 / 2 * x ** 2 + 1 / 4 * x ** 4 - 1 / 20 * x ** 5
+        V = - 8 * x ** 2 + 1/4 * x ** 4 - 1 / 20 * x ** 5
         return V
 
 def pot4(x):
@@ -83,9 +83,6 @@ def pot6(x):
     l = 1
     V = - 0.5 * u ** 2 * x ** 2 + 0.25 * l ** 2 * x ** 4
     return V
-
-pot = pot5
-
 
 def actn(path, potential):
     """calculating energies"""
@@ -143,6 +140,7 @@ def norm(array):
     else:
         return 0
 
+pot = pot5
 
 p_1 = path_gen(x[int(len(x)/2)])
 print(p_1)
@@ -156,11 +154,17 @@ G = prop(pot, N)
 Norm_G = norm(G)
 y1 = Norm_G
 
-# graph
-#plt.figure()
-#plt.plot(x, y1)
-#plt.show()
 
+
+'''
+plt.figure()
+plt.plot(x, y1)
+plt.show()
+xs = np.linspace(-5, 5, 100)
+ys = pot(xs)
+plt.plot(xs, ys)
+# plt.show()
+'''
 
 """repeating propagator for smaller samples"""
 # sample size
@@ -198,19 +202,20 @@ pdf_B = norm(pdf_A)
 y2 = pdf_B * (max(y1)/max(pdf_B))
 
 xs = np.linspace(-5, 5, 100)
-ys = pot(xs)
+y = pot(xs)
+
 
 # plotting graphs
 plt.subplot(1, 2, 2)
 plt.plot(x  , y1, label='FPI',       color='k')
 #plt.plot(x  , y2, label='PDF',       color='tab:orange')
-plt.plot(xs , ys, label='Potential', color='tab:blue')
-plt.legend()
-plt.grid()
+plt.plot(xs , y, label='Potential_2', color='tab:blue')
 plt.xlim(x0, x1)
 plt.xlabel('position')
-plt.ylim(-0.2, max(y1) + 0.1*max(y1))
+plt.ylim(0, max(y1) + 0.1*max(y1))
+plt.legend()
+plt.grid()
 
 dir, file = os.path.split(__file__)
-plt.savefig(dir + '\\Images\\hist-Brute_force.png')
+plt.savefig(dir + '\\Images\\hist-Brute_force_2.png')
 plt.show()

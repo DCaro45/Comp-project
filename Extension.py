@@ -17,7 +17,7 @@ tf = 4     # finish time
 div_t = 1  # division of time points (i.e whole numbs, half, third etc))
 
 epsilon = 1.4  # change in delta_xs size from spatial lattice spacing
-bins = 200     # number of bins for histogram
+bins = 100     # number of bins for histogram
 
 N_cor = 3        # number of paths to be skipped path set (due to correlation)
 N_CF = 10 ** 5      # number of updates
@@ -57,8 +57,8 @@ def pot2(x, y):
 def pdf(x, y):
     """prob density function"""
     r = np.sqrt(x ** 2 + y ** 2)
-    prob = np.exp(- r ** 2) /np.pi
-    #prob = np.exp( - r ** 2)/(np.pi ** (1/2))
+    #prob = np.exp(- r ** 2) /np.pi
+    prob = np.exp( - r ** 2)/(np.pi ** (1/2))
     return prob
 
 V = pot1
@@ -190,16 +190,12 @@ X = np.linspace(x0, x1, 100)
 Y = np.linspace(y0, y1, 100)
 X, Y = np.meshgrid(X, Y)
 Z = pdf(X, Y)
-#Z = pot(X, Y)
 
 fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
-#ax = fig.add_subplot(111, projection='3d')
 
 hist, xedges, yedges = np.histogram2d(xpos, ypos, bins=bins)#, density=True)
 Norm = np.max(Z)/np.max(hist) * hist
 
-#print(x0, min(xedges), x1,  max(xedges))
-#print(y0, min(yedges), y1, max(yedges))
 
 x, y = np.meshgrid(xedges[:-1]+xedges[1:], yedges[:-1]+yedges[1:])
 
@@ -207,8 +203,6 @@ x = x.flatten()/2
 y = y.flatten()/2
 z = np.zeros_like (x)
 
-#print(x0, min(x), x1, max(x))
-#print(y0, min(y), y1, max(y))
 
 dx = xedges [1] - xedges [0]
 dy = yedges [1] - yedges [0]
@@ -221,7 +215,6 @@ rgba = [cmap((k-min_height)/max_height) for k in dz]
 
 ax.bar3d(x, y, z, dx, dy, dz, color=rgba, zsort='average')
 ax.plot_surface(X, Y, Z, cmap=cm.coolwarm, alpha=0.3, linewidth=0, antialiased=False)
-#ax.zaxis.set_major_locator(LinearLocator(10))
 ax.zaxis.set_major_formatter('{x:.02f}')
 ax.tick_params(axis='z', labelcolor='red')
 
@@ -250,23 +243,12 @@ H, xedges, yedges = np.histogram2d(x, y, bins=bins)
 H = H.T
 
 fig = plt.figure(figsize=(6, 6))
-#ax = fig.add_subplot(131, title='imshow: square bins')
-#plt.imshow(H, interpolation='nearest', origin='lower',
- #       extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
 
 ax = fig.add_subplot(title='Histogram Contour')
-#        ,aspect='equal')
 X, Y = np.meshgrid(xedges, yedges)
 ax.pcolormesh(X, Y, H)
-#plt.plot(xs, - (r**2 - xs**2) ** (1/2), 'k-')
-#plt.plot(xs, (r**2 - xs**2) ** (1/2), 'k-')
+# plt.plot(xs, - (r**2 - xs**2) ** (1/2), 'k-')
+# plt.plot(xs, (r**2 - xs**2) ** (1/2), 'k-')
 
-#ax = fig.add_subplot(133, title='NonUniformImage: interpolated',
-#        aspect='equal', xlim=xedges[[0, -1]], ylim=yedges[[0, -1]])
-im = NonUniformImage(ax, interpolation='bilinear')
-#xcenters = (xedges[:-1] + xedges[1:]) / 2
-#ycenters = (yedges[:-1] + yedges[1:]) / 2
-#im.set_data(xcenters, ycenters, H)
-#ax.add_image(im)
 plt.show()
 

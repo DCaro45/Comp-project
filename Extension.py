@@ -16,10 +16,10 @@ ti = 0     # start time
 tf = 4     # finish time
 div_t = 1  # division of time points (i.e whole numbs, half, third etc))
 
-epsilon = 1.4  # change in delta_xs size from spatial lattice spacing
+epsilon = 1.3  # change in delta_xs size from spatial lattice spacing
 bins = 100     # number of bins for histogram
 
-N_cor = 3        # number of paths to be skipped path set (due to correlation)
+N_cor = 20        # number of paths to be skipped path set (due to correlation)
 N_CF = 10 ** 5      # number of updates
 
 '''determinants/shorthands'''
@@ -46,10 +46,11 @@ def pot1(x, y):
     V = 1/2 * r ** 2
     return V
 
+u = 2
+l = 1
+
 def pot2(x, y):
     """a simple potential analogue for the Higgs potential"""
-    u = 3.5
-    l = 1
     r = np.sqrt(x ** 2 + y ** 2)
     V = - 0.5 * u ** 2 * r ** 2 + 0.25 * l ** 2 * r ** 4
     return V
@@ -61,7 +62,7 @@ def pdf(x, y):
     prob = np.exp( - r ** 2)/(np.pi ** (1/2))
     return prob
 
-V = pot1
+V = pot2
 
 '''
 x0 = -4
@@ -84,7 +85,7 @@ ax.set_zlabel('Potential')
 #plt.show()
 '''
 
-pot = pot1
+pot = pot2
 
 def actn(x, y, j, k, potential):
     """calculating energies"""
@@ -121,11 +122,11 @@ def Metropolis(path_x, path_y, potential):
 
             S1 = actn(path_x, path_y, j, k, potential)
             S2 = actn(eval_px, eval_py, j, k,  potential)
-            ds = S2 - S1
+            dS = S2 - S1
 
             r = rdm.random()
-            W = np.exp(-ds)
-            if ds < 0 or W > r:
+            W = np.exp(-dS)
+            if dS < 0 or W > r:
                 path_x = eval_px
                 path_y = eval_py
                 count += 1
@@ -235,9 +236,8 @@ plt.show()
 
 x = xpos
 y = ypos
-r = 3.5
-
-xs = np.linspace(- r, r, 100)
+R = u/l
+xs = np.linspace(- R, R, 100)
 
 H, xedges, yedges = np.histogram2d(x, y, bins=bins)
 H = H.T
@@ -247,8 +247,10 @@ fig = plt.figure(figsize=(6, 6))
 ax = fig.add_subplot(title='Histogram Contour')
 X, Y = np.meshgrid(xedges, yedges)
 ax.pcolormesh(X, Y, H)
-# plt.plot(xs, - (r**2 - xs**2) ** (1/2), 'k-')
-# plt.plot(xs, (r**2 - xs**2) ** (1/2), 'k-')
+plt.plot(xs, - (R**2 - xs**2) ** (1/2), 'k-')
+plt.plot(xs, (R**2 - xs**2) ** (1/2), 'k-')
+
+fig.savefig(dir + '\\Images\\contour-hist_Higgs.png')
 
 plt.show()
 

@@ -51,7 +51,7 @@ def path_gen(x_0):
 
 def pot1(x):
     """simple harmonic oscillator potential"""
-    potential = 1/2 * x **2
+    potential = 1/2 * x**2
     return potential
 
 def pot2(x):
@@ -63,7 +63,7 @@ def pot2(x):
 
 def pot3(x):
         """ a polynomial potential with a minimum and a stationary inflection point"""
-        V = - 8 * x ** 2 + 1/4 * x ** 4 - 1 / 20 * x ** 5
+        V = 1 / 2 * x ** 2 + 1 / 4 * x ** 4 - 1 / 20 * x ** 5
         return V
 
 def pot4(x):
@@ -83,6 +83,9 @@ def pot6(x):
     l = 1
     V = - 0.5 * u ** 2 * x ** 2 + 0.25 * l ** 2 * x ** 4
     return V
+
+pot = pot5
+
 
 def actn(path, potential):
     """calculating energies"""
@@ -140,7 +143,6 @@ def norm(array):
     else:
         return 0
 
-pot = pot5
 
 p_1 = path_gen(x[int(len(x)/2)])
 print(p_1)
@@ -154,16 +156,17 @@ G = prop(pot, N)
 Norm_G = norm(G)
 y1 = Norm_G
 
-
-
 '''
+# graph
 plt.figure()
 plt.plot(x, y1)
 plt.show()
+
 xs = np.linspace(-5, 5, 100)
 ys = pot(xs)
+plt.figure()
 plt.plot(xs, ys)
-# plt.show()
+plt.show()
 '''
 
 """repeating propagator for smaller samples"""
@@ -202,20 +205,19 @@ pdf_B = norm(pdf_A)
 y2 = pdf_B * (max(y1)/max(pdf_B))
 
 xs = np.linspace(-5, 5, 100)
-y = pot(xs)
-
+ys = pot(xs)
 
 # plotting graphs
 plt.subplot(1, 2, 2)
 plt.plot(x  , y1, label='FPI',       color='k')
 #plt.plot(x  , y2, label='PDF',       color='tab:orange')
-plt.plot(xs , y, label='Potential_2', color='tab:blue')
-plt.xlim(x0, x1)
-plt.xlabel('position')
-plt.ylim(0, max(y1) + 0.1*max(y1))
+plt.plot(xs , ys, label='Potential', color='tab:blue')
 plt.legend()
 plt.grid()
+plt.xlim(x0, x1)
+plt.xlabel('position')
+plt.ylim(-0.2, max(y1) + 0.1*max(y1))
 
 dir, file = os.path.split(__file__)
-plt.savefig(dir + '\\Images\\hist-Brute_force_2.png')
+#plt.savefig(dir + '\\Images\\hist-Brute_force.png')
 plt.show()

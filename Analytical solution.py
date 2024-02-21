@@ -1,4 +1,4 @@
-"""operating at each point on path, keep each path iteration, start at the origin"""
+"""Creating a symbolic analytical solution to the PDF of a particle in anharmonic potentials"""
 
 import numpy as np
 import random as rdm
@@ -65,16 +65,22 @@ def actn(x, potential):
     Action = a * E_tot
     return Action
 
+def analytic(x, potential):
+    """analytical solution to the PDF"""
+    prob = np.exp(-actn(x, potential))
+    return prob
+
 pot = pot1
 
 xs = np.linspace(-5, 5, 1000)
 y = np.zeros([len(xs)])
 for i, x in enumerate(xs):
-    y[i] = np.exp(-actn(x, pot))
+    y[i] = analytic(x, pot)
 
 V = pot(xs)
 P = pdf(xs)
 plt.plot(xs, max(P) * y)
+plt.plot(xs, P)
 plt.show()
 
 

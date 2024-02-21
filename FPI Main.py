@@ -1,3 +1,5 @@
+"""Using the brute force method to calculate the probability density function of a harmonic oscillator potential"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 import math as mt
@@ -190,7 +192,7 @@ ys = Norm_Gs
 'plotting graphs'
 As = np.linspace(0.25, 1, nbr)    #Alpha valeus
 
-plt.figure(figsize=[10,4])
+plt.figure(figsize=(10,4))
 plt.subplot(1, 2, 1)
 for j in range(0, nbr):
     plt.plot(x, ys[j], alpha = As[j])

@@ -1,4 +1,4 @@
-"""operating at each point on path, keep each path iteration, start at the origin"""
+"""using metropolis to find probability density function for 2D potentials"""
 
 import numpy as np
 import random as rdm
@@ -12,28 +12,34 @@ dir, file = os.path.split(__file__)
 '''values'''
 mass = 1   # setting mass to be 1
 
-ti = 0     # start time
-tf = 2     # finish time
-div_t = 2  # division of time points (i.e. whole numbs, half, third etc.))
+t_i = 0     # start time
+t_f = 20     # finish time
+div = 0.5  # division of time points (i.e. whole numbs, half, third etc.))
 
-epsilon = 1.2  # change in delta_xs size from spatial lattice spacing
-bins = 50     # number of bins for histogram
+epsilon = 3  # change in delta_xs size from spatial lattice spacing
+bins = 50      # number of bins for histogram
 
 N_cor = 20        # number of paths to be skipped path set (due to correlation)
-N_CF = 10 ** 4    # number of updates
-Therm = 10 * N_cor    # number of sweeps through path set
+Therm = 5 * N_cor    # number of sweeps through path set
+N_CF = 10 ** 4   # number of updates
 
 u = 2            # potential parameter 1
 l = 1            # potential parameter 2
 
 '''determinants/shorthands'''
-n_tp = div_t * (tf - ti) + 1          # number of temporal points
-n_tl = div_t * (tf - ti)              # number of temporal links
-a = (tf - ti) / n_tl                  # size of time step
-t_points = np.linspace(ti, tf, int(n_tp))  # temporal lattice points
+if t_f - t_i >= 1:
+    n_tp = int( div * (t_f - t_i) + 1 )         # number of temporal points
+    n_tl = int( div * (t_f - t_i) )             # number of temporal links
+    a = (t_f - t_i) / n_tl                # size of time step
+    t_points = np.linspace(t_i, t_f, n_tp)  # temporal lattice points
+if t_f - t_i < 1:
+    n_tp = div + 1          # number of temporal points
+    n_tl = div              # number of temporal links
+    a = (t_f - t_i) / div   # size of time step
+    t_points = np.linspace(t_i, t_f, div + 1)  # temporal lattice points
 
 m = mass           # shorthand for mass
-n = int(n_tp)          # shorthand for no.t points
+nt = n_tp          # shorthand for no.t points
 t = t_points       # shorthand for temporal lattice points
 e = epsilon        # shorthand for epsilon
 U = int(N_cor)    # shorthand for sweeps 2 (and integer data type)
@@ -41,7 +47,7 @@ T = int(Therm)     # shorthand for sweeps 1 (and integer data type)
 N = int(N_CF)      # shorthand for number of updates
 
 print(
-    'nt = ' + str(n) + ', ' + 'a = ' + str(a) + ', ' + 't = ' + str(t) + ', ' + 'epsilon = ' + str(e) + ', ' +
+    'n = ' + str(nt) + ', ' + 'a = ' + str(a) + ', ' + 't = ' + str(t) + ', ' + 'epsilon = ' + str(e) + ', ' +
     'N_cor/Update = ' + str(U) + ', ' + 'S1 = ' + str(T) + ', ' + 'N_CF = ' + str(N)
       )
 
@@ -70,17 +76,24 @@ def pot2(x, y):
 def pot3(x, y):
     """ an anharmonic potential with a variety of minima"""
     r = np.sqrt(x ** 2 + y ** 2)
-    V = 1/2 * r ** 2 - 1/3 * r ** 2 + 1/4 * r ** 4 + 1/20 * r ** 5
+    V = - 10 * x**2 + 8 * y**2 + 6 * x**4 - 3 * y**4 + 1/10 * x**6 + 1/10 * y**6
     return V
 
-V = pot1
 
-x0 = -10
-x1 = 10
+def pot4(x,y):
+    """ an anharmonic potential with a variety of minima using sin and cos functions"""
+    V = np.cos(x) + np.cos(y) + 1/5000000 * np.exp(x**2) + 1/5000000 * np.exp(y**2)
+    return V
+
+
+pot = pot4
+
+x0 = -4
+x1 = 4
 X = np.linspace(x0, x1, 250)
 Y = np.linspace(x0, x1, 250)
 X, Y = np.meshgrid(X, Y)
-Z = V(X, Y)
+Z = pot(X, Y)
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 ax.plot_surface(X, Y, Z, cmap=cm.coolwarm, linewidth=0, antialiased=False)
@@ -94,14 +107,18 @@ plt.show()
 
 def actn(x, y, j, potential):
     """calculating energies"""
-    jp = (j-1) % n
-    jn = (j+1) % n
+    jp = (j-1) % nt
+    jn = (j+1) % nt
 
-    r = np.sqrt(x[j] ** 2 + y[j] ** 2)
-    rp = np.sqrt(x[jp] ** 2 + y[jp] ** 2)
-    rn = np.sqrt(x[jn] ** 2 + y[jn] ** 2)
+    #r = np.sqrt(x[j] ** 2 + y[j] ** 2)
+    #rp = np.sqrt(x[jp] ** 2 + y[jp] ** 2)
+    #rn = np.sqrt(x[jn] ** 2 + y[jn] ** 2)
+    #KE = m * r * (r - rp - rn) / (a ** 2)
 
-    KE = m * r * (r - rp - rn) / (a ** 2)
+    KE_x = m * x[j] * (x[j] - x[jp] - x[jn]) / (a ** 2)
+    KE_y = m * y[j] * (y[j] - y[jp] - y[jn]) / (a ** 2)
+    KE = KE_x + KE_y
+
     PE = potential(x[j], y[j])
     E_tot = KE + PE
     Action = a * E_tot
@@ -114,8 +131,8 @@ def Metropolis(path_x, path_y, potential):
     N = len(path_x)
     M = len(path_y)
 
-    for i in range(n):
-        if N != n or M != n:
+    for i in range(nt):
+        if N != nt or M != nt:
             print('error: path length not equal to n')
             break
         dx = rdm.uniform(-e, e)
@@ -139,58 +156,60 @@ def Metropolis(path_x, path_y, potential):
 
     return path_x, path_y, count
 
-pot = pot1
+"""Initialising paths and trialing metropolis"""
 
-px_1 = np.zeros([n])
-py_1 = np.zeros([n])
+px_1 = np.zeros([nt])
+py_1 = np.zeros([nt])
 px1, py1, count = Metropolis(px_1, py_1, pot)
-print(px1, py1, count/n, sep='\n')
+print(px1, py1, count/nt, sep='\n')
+
+"""Thermalising lattice"""
 
 init_x = px_1
 init_y = py_1
-
-'''
-"""Thermalising lattice"""
 for i in range(T):
     new_px, new_py, counts = Metropolis(init_x, init_y, pot)
     init_x = new_px
     init_y = new_py
-'''
 
-"""generating paths and applying metropolis"""
-all_ps_x = np.zeros([N, n])
-all_ps_y = np.zeros([N, n])
+"""Generating paths and applying metropolis"""
+
+all_px = np.zeros([N, nt])
+all_py = np.zeros([N, nt])
+all_px[0] = init_x
+all_py[0] = init_y
+
 t_counts = 0
-for j in range(N):
-    if j == 0:
-        start_px = init_x
-        start_py = init_y
-    else:
-        start_px = all_ps_x[j - 1]
-        start_py = all_ps_y[j - 1]
+for j in range(N - 1):
+    start_px = all_px[j]
+    start_py = all_py[j]
     for i in range(U):
         new_px, new_py, counts = Metropolis(start_px, start_py, pot)
         start_px = new_px
         start_py = new_py
         t_counts += counts
-    all_ps_x[j] = start_px
-    all_ps_y[j] = start_py
-print('prop of changing point = ' + str(t_counts/(n*U*N)))
+    all_px[j + 1] = start_px
+    all_py[j + 1] = start_py
+print('prop of changing point = ' + str(t_counts/(nt*U*N)))
 
 
-"""all points from new_ps"""
+"""All points from new_ps"""
 
-xpos = np.zeros([N * n])
-ypos = np.zeros([N * n])
+xpos = np.zeros([N * nt])
+ypos = np.zeros([N * nt])
+
 k = 0
 for i in range(N):
-    for j in range(n):
-        xpos[k] = all_ps_x[i][j]
-        ypos[k] = all_ps_y[i][j]
+    for j in range(nt):
+        xpos[k] = all_px[i][j]
+        ypos[k] = all_py[i][j]
         k += 1
 print('done')
 
 
+"""Graphs"""
+
+"Generating potential"
 x0 = min(xpos)
 x1 = max(xpos)
 y0 = min(ypos)
@@ -199,9 +218,11 @@ y1 = max(ypos)
 X = np.linspace(x0, x1, 100)
 Y = np.linspace(y0, y1, 100)
 X, Y = np.meshgrid(X, Y)
-Z = pdf(X, Y)
+Z = pot(X, Y)
+#Z = pdf(X, Y)
 
 R = u/l
+
 
 "3D Hist"
 fig, ax = plt.subplots(subplot_kw={"projection": "3d"})

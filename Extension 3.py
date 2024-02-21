@@ -1,4 +1,4 @@
-"""operating at each point on path, keep each path iteration, start at the origin"""
+"""calculating the energy difference between the ground and first excited state of a simple harmonic oscillator"""
 
 import numpy as np
 import random as rdm
@@ -14,38 +14,38 @@ div_t = 2   # division of time points (i.e whole numbs, half, third etc))
 
 epsilon = 1.4  # change in delta_xs size from spatial lattice spacing
 N_cor = 25        # number of paths to be skipped path set (due to correlation)
-N_CF = 10 ** 5       # number of updates
+N_CF = 10 ** 4       # number of updates
+Therm = 5 * N_cor    # number of sweeps through path set
+
 
 '''determinants/shorthands'''
-n_tp = div_t * (tf - ti) + 1          # number of temporal points
-n_tl = div_t * (tf - ti)              # number of temporal links
+n_tp = int( div_t * (tf - ti) + 1 )          # number of temporal points
+n_tl = int( div_t * (tf - ti) )             # number of temporal links
 a = (tf - ti) / n_tl                  # size of time step
 t_points = np.linspace(ti, tf, n_tp)  # temporal lattice points
-
-Therm = 10 * N_cor    # number of sweeps through path set
-Update = N_cor        # not necessary right now
 
 m = mass           # shorthand for mass
 nt = n_tp          # shorthand for no.t points
 t = t_points       # shorthand for temporal lattice points
 e = epsilon        # shorthand for epsilon
+U = int(N_cor)     # shorthand for sweeps 2 (and integer data type)
 T = int(Therm)     # shorthand for sweeps 1 (and integer data type)
-U = int(Update)    # shorthand for sweeps 2 (and integer data type)
+N = int(N_CF)      # shorthand for number of updates
 
-print('# temporal points = ' + str(nt) + ', ' + 'size of time step = ' + str(a) + ', ' + 'temporal points = ' + str(t) + ', ' + 'epsilon = ' + str(e) +
-      ', ' '# updates (N_cor) = ' + str(N_cor) + ', ' + 'Therm sweeps (T) = ' + str(T) + ', ' + '# paths (N_CF) = ' + str(N_CF))
+print('# temporal points = ' + str(nt) + ', ' + 'size of time step = ' + str(a) + ', ' + 'temporal points = ' + str(t) +
+      ', ' + 'epsilon = ' + str(e) + ', ' '# updates (N_cor) = ' + str(N_cor) + ', ' + 'Therm sweeps (T) = ' + str(T) +
+      ', ' + '# paths (N_CF) = ' + str(N))
 
 def pot(x):
-    """simple harmonic oscillator potential"""
+    "simple harmonic oscillator potential"
     V = 1/2 * x ** 2
     return V
 
 def actn(x, j, potential):
-    """calculating energies"""
+    "calculating energies"
     # setting index so that it loops around
-    N = len(x)
-    jp = (j-1) % N
-    jn = (j+1) % N
+    jp = (j-1) % nt
+    jn = (j+1) % nt
 
     # calculating energies ... strange???
     KE = m * x[j] * (x[j] - x[jp] - x[jn]) / (a ** 2)
@@ -56,7 +56,7 @@ def actn(x, j, potential):
     return Action
 
 def Metropolis(path, potential):
-    """creating the metropolis algorithm"""
+    "creating the metropolis algorithm"
     # keeping count of number of changes
     count = 0
 
@@ -81,17 +81,17 @@ def Metropolis(path, potential):
 
     return path, count
 
-def compute_G1(x,n):
+def compute_G1(x,k):
     g = 0
     for j in range(nt):
-        jn = (j+n) % nt
+        jn = (j+k) % nt
         g += x[j] * x[jn]
     return g/nt
 
-def compute_G2(x,n):
+def compute_G2(x,k):
     g = 0
     for j in range(nt):
-        jn = (j+n) % nt
+        jn = (j+k) % nt
         g += x[j] ** 3 * x[jn] ** 3
     return g/nt
 
@@ -126,18 +126,18 @@ def bootstrap(G):
 
 def bin(G, number):
     G_binned = []
-    binsize = int(N_CF/number)
-    for i in range(0, N_CF, binsize):
+    binsize = int(N/number)
+    for i in range(0, N, binsize):
         G_avg = 0
         for j in range(binsize):
-            if i+j >= N_CF:
+            if i+j >= N:
                 break
             G_avg += G[i+j]
         G_avg = G_avg/binsize
         G_binned.append(G_avg)
     return G_binned
 
-compute_G = compute_G2
+compute_G = compute_G1
 
 p_1 = [0 for t in range(nt)]
 p_2 = [np.random.uniform(-4, 4) for t in range(nt)]
@@ -154,27 +154,27 @@ for i in range(T):
 therm = init
 
 """generating array of G values"""
-G = np.zeros([N_CF, nt])
+G = np.zeros([N, nt])
 count = 0
 x = therm
-for alpha in range(N_CF):
+for alpha in range(N):
     for j in range(U):
         new_x, c = Metropolis(x, pot)
         x = new_x
         count += c
-    for n in range(nt):
-        G[alpha][n] = compute_G(x,n)
-print('prop of changing point = ' + str(count/(nt*U*N_CF)))
+    for k in range(nt):
+        G[alpha][k] = compute_G(x,k)
+print('prop of changing point = ' + str(count/(nt*U*N)))
 print('done G')
 
 """averaging G values"""
 Av_G = np.zeros([nt])
-for n in range(nt):
+for k in range(nt):
     avg_G = 0
-    for alpha in range(N_CF):
-        avg_G += G[alpha][n]
-    avg_G = avg_G/N_CF
-    Av_G[n] = avg_G
+    for alpha in range(N):
+        avg_G += G[alpha][k]
+    avg_G = avg_G/N
+    Av_G[k] = avg_G
 Avg_G = avg(G)
 
 'Binning G values'
@@ -195,16 +195,16 @@ print('done dE')
 
 """Calculating errors"""
 'Bootstrap'
-n = 10e+0
-dE_bootstrap = np.zeros([int(n), nt - 1])
-for i in range(int(n)):
+M = int(10e+0)
+dE_bootstrap = np.zeros([M, nt - 1])
+for i in range(M):
     G_bootstrap = bootstrap(G)
     Avg_G = avg(G_bootstrap)
     dE_bootstrap[i] = delta_E(Avg_G)
 dE_avg = avg(dE_bootstrap)
 dE_sd = sdev(dE_bootstrap)
 
-#print('G(%d) = %g' % (n, avg_G) + ', ' + str(count/(nt*U*N_CF)))
+#print('G(%d) = %g' % (n, avg_G) + ', ' + str(count/(nt*U*N)))
 #print(Av_G)
 
 #print('avg G\n', avg(G))
@@ -215,8 +215,8 @@ dE_sd = sdev(dE_bootstrap)
 nums = [1.5**i for i in range(1, 18)]
 print(nums)
 sd_bin = np.zeros([len(nums), nt - 1])
-for i, n in enumerate(nums):
-    b = bin(G, n)
+for i, m in enumerate(nums):
+    b = bin(G, m)
     '''
     avg_b = avg(b)
     deltaE = delta_E2(avg_b)
@@ -224,9 +224,9 @@ for i, n in enumerate(nums):
     sd_bin[i] = sdev(deltaE)
     '''
     'Bootstrap'
-    n = 10e+1
-    dE_bootstrap = np.zeros([int(n), nt - 1])
-    for j in range(int(n)):
+    M = int(10e+1)
+    dE_bootstrap = np.zeros([M, nt - 1])
+    for j in range(M):
         G_bootstrap = bootstrap(b)
         Avg_G = avg(G_bootstrap)
         dE_bootstrap[j] = delta_E(Avg_G)
@@ -246,7 +246,7 @@ ts = t[:-1]
 #print(len(dE_2), len(ts))
 
 
-plt.figure(figsize=[8, 4])
+plt.figure(figsize=(8, 4))
 plt.plot(ts, dE_analytic, linestyle='--', color='black')
 #plt.scatter(ts, dE, color='red', alpha=0.5, label='Delta_E')
 #plt.scatter(ts, dE_1, color='blue', alpha=0.2, label='Delta_E calculated from first G values')

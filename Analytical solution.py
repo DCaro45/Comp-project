@@ -16,12 +16,8 @@ div_t = 1  # division of time points (i.e whole numbs, half, third etc))
 n_tp = div_t * (tf - ti) + 1          # number of temporal points
 n_tl = div_t * (tf - ti)              # number of temporal links
 a = (tf - ti) / n_tl                  # size of time step
-t_points = np.linspace(ti, tf, n_tp)  # temporal lattice points
+t_points = np.linspace(ti, tf, int(n_tp))  # temporal lattice points
 
-def pot1(x):
-    """simple harmonic oscillator potential"""
-    V = 1/2 * x ** 2
-    return V
 
 def pot1(x):
     V = 1/2 * x ** 2
@@ -69,20 +65,16 @@ def actn(x, potential):
     Action = a * E_tot
     return Action
 
-pot = pot6
+pot = pot1
 
-x = np.linspace(-5, 5, 100)
-y = np.zeros([len(x)])
-for i, x_i in enumerate(x):
-    y[i] = np.exp(-pot(x_i))
-y = np.exp(-pot(x))
-y2 = np.exp(-actn(x, pot))
-V = pot(x)
-P = pdf(x)
-plt.plot(x, y)
-plt.plot(x, y2)
-#plt.plot(x, V)
-plt.plot(x, P)
+xs = np.linspace(-5, 5, 1000)
+y = np.zeros([len(xs)])
+for i, x in enumerate(xs):
+    y[i] = np.exp(-actn(x, pot))
+
+V = pot(xs)
+P = pdf(xs)
+plt.plot(xs, max(P) * y)
 plt.show()
 
 

@@ -4,41 +4,54 @@ import numpy as np
 import random as rdm
 import matplotlib.pyplot as plt
 from matplotlib import cm
-from matplotlib.ticker import LinearLocator
 import os
-from matplotlib.image import NonUniformImage
 
+
+dir, file = os.path.split(__file__)
 
 '''values'''
 mass = 1   # setting mass to be 1
 
 ti = 0     # start time
-tf = 4     # finish time
-div_t = 1  # division of time points (i.e whole numbs, half, third etc))
+tf = 2     # finish time
+div_t = 2  # division of time points (i.e. whole numbs, half, third etc.))
 
-epsilon = 1  # change in delta_xs size from spatial lattice spacing
+epsilon = 1.2  # change in delta_xs size from spatial lattice spacing
 bins = 50     # number of bins for histogram
 
 N_cor = 20        # number of paths to be skipped path set (due to correlation)
-N_CF = 10 ** 4      # number of updates
+N_CF = 10 ** 4    # number of updates
+Therm = 10 * N_cor    # number of sweeps through path set
+
+u = 2            # potential parameter 1
+l = 1            # potential parameter 2
 
 '''determinants/shorthands'''
 n_tp = div_t * (tf - ti) + 1          # number of temporal points
 n_tl = div_t * (tf - ti)              # number of temporal links
 a = (tf - ti) / n_tl                  # size of time step
-t_points = np.linspace(ti, tf, n_tp)  # temporal lattice points
-
-Therm = 10 * N_cor    # number of sweeps through path set
-Update = N_cor        # not necessary right now
+t_points = np.linspace(ti, tf, int(n_tp))  # temporal lattice points
 
 m = mass           # shorthand for mass
-nt = n_tp          # shorthand for no.t points
+n = int(n_tp)          # shorthand for no.t points
 t = t_points       # shorthand for temporal lattice points
 e = epsilon        # shorthand for epsilon
+U = int(N_cor)    # shorthand for sweeps 2 (and integer data type)
 T = int(Therm)     # shorthand for sweeps 1 (and integer data type)
-U = int(Update)    # shorthand for sweeps 2 (and integer data type)
+N = int(N_CF)      # shorthand for number of updates
 
-print('nt = ' + str(nt) + ', ' + 'a = ' + str(a) + ', ' + 't = ' + str(t) + ', ' + 'epsilon = ' + str(e) + ', ' 'N_cor/Update = ' + str(N_cor) + ', ' + 'S1 = ' + str(T) + ', ' + 'N_CF = ' + str(N_CF))
+print(
+    'nt = ' + str(n) + ', ' + 'a = ' + str(a) + ', ' + 't = ' + str(t) + ', ' + 'epsilon = ' + str(e) + ', ' +
+    'N_cor/Update = ' + str(U) + ', ' + 'S1 = ' + str(T) + ', ' + 'N_CF = ' + str(N)
+      )
+
+
+def pdf(x, y):
+    """prob density function"""
+    r = np.sqrt(x ** 2 + y ** 2)
+    prob = np.exp(- r ** 2) / np.pi
+    return prob
+
 
 def pot1(x, y):
     """simple harmonic oscillator potential"""
@@ -46,33 +59,28 @@ def pot1(x, y):
     V = 1/2 * r ** 2
     return V
 
+
 def pot2(x, y):
     """a simple potential analogue for the Higgs potential"""
-    u = 2
-    l = 1
     r = np.sqrt(x ** 2 + y ** 2)
     V = - 0.5 * u ** 2 * r ** 2 + 0.25 * l ** 2 * r ** 4
     return V
 
-def pdf(x, y):
-    """prob density function"""
+
+def pot3(x, y):
+    """ an anharmonic potential with a variety of minima"""
     r = np.sqrt(x ** 2 + y ** 2)
-    prob = np.exp(- r ** 2) /np.pi
-    #prob = np.exp( - r ** 2)/(np.pi ** (1/2))
-    return prob
+    V = 1/2 * r ** 2 - 1/3 * r ** 2 + 1/4 * r ** 4 + 1/20 * r ** 5
+    return V
 
-V = pot2
+V = pot1
 
-'''
-x0 = -4
-x1 = 4
-
+x0 = -10
+x1 = 10
 X = np.linspace(x0, x1, 250)
 Y = np.linspace(x0, x1, 250)
 X, Y = np.meshgrid(X, Y)
 Z = V(X, Y)
-
-
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 ax.plot_surface(X, Y, Z, cmap=cm.coolwarm, linewidth=0, antialiased=False)
@@ -81,15 +89,13 @@ ax.tick_params(axis='z', labelcolor='red')
 ax.set_xlabel('X')
 ax.set_ylabel('Y')
 ax.set_zlabel('Potential')
-#plt.show()
-'''
+plt.show()
 
-pot = pot2
 
 def actn(x, y, j, potential):
     """calculating energies"""
-    jp = (j-1) % nt
-    jn = (j+1) % nt
+    jp = (j-1) % n
+    jn = (j+1) % n
 
     r = np.sqrt(x[j] ** 2 + y[j] ** 2)
     rp = np.sqrt(x[jp] ** 2 + y[jp] ** 2)
@@ -105,12 +111,12 @@ def actn(x, y, j, potential):
 def Metropolis(path_x, path_y, potential):
     """creating the metropolis algorithm"""
     count = 0
-    n = len(path_x)
-    m = len(path_y)
+    N = len(path_x)
+    M = len(path_y)
 
-    for i in range(nt):
-        if n != nt or m != nt:
-            print('error: path length not equal to nt')
+    for i in range(n):
+        if N != n or M != n:
+            print('error: path length not equal to n')
             break
         dx = rdm.uniform(-e, e)
         dy = rdm.uniform(-e, e)
@@ -133,10 +139,12 @@ def Metropolis(path_x, path_y, potential):
 
     return path_x, path_y, count
 
-px_1 = [0 for x in range(nt)]
-py_1 = [0 for y in range(nt)]
+pot = pot1
+
+px_1 = np.zeros([n])
+py_1 = np.zeros([n])
 px1, py1, count = Metropolis(px_1, py_1, pot)
-print(px1, py1, count/nt)
+print(px1, py1, count/n, sep='\n')
 
 init_x = px_1
 init_y = py_1
@@ -150,35 +158,36 @@ for i in range(T):
 '''
 
 """generating paths and applying metropolis"""
-all_ps_x = [init_x]
-all_ps_y = [init_x]
+all_ps_x = np.zeros([N, n])
+all_ps_y = np.zeros([N, n])
 t_counts = 0
-for j in range(N_CF):
-    start_px = all_ps_x[-1]
-    start_py = all_ps_y[-1]
-    #start_px = init_x
-    #start_py = init_y
+for j in range(N):
+    if j == 0:
+        start_px = init_x
+        start_py = init_y
+    else:
+        start_px = all_ps_x[j - 1]
+        start_py = all_ps_y[j - 1]
     for i in range(U):
         new_px, new_py, counts = Metropolis(start_px, start_py, pot)
         start_px = new_px
         start_py = new_py
         t_counts += counts
-    all_ps_x.append(start_px)
-    all_ps_y.append(start_py)
+    all_ps_x[j] = start_px
+    all_ps_y[j] = start_py
+print('prop of changing point = ' + str(t_counts/(n*U*N)))
 
-print('prop of changing point = ' + str(t_counts/(nt*U*N_CF)))
 
-"""all points fromn new_ps"""
-ln = len(all_ps_x)
-xpos= np.zeros([ln * nt])
-ypos = np.zeros([ln * nt])
+"""all points from new_ps"""
+
+xpos = np.zeros([N * n])
+ypos = np.zeros([N * n])
 k = 0
-for i in range(ln):
-    for j in range(nt):
+for i in range(N):
+    for j in range(n):
         xpos[k] = all_ps_x[i][j]
         ypos[k] = all_ps_y[i][j]
         k += 1
-
 print('done')
 
 
@@ -192,18 +201,18 @@ Y = np.linspace(y0, y1, 100)
 X, Y = np.meshgrid(X, Y)
 Z = pdf(X, Y)
 
+R = u/l
+
+"3D Hist"
 fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
 
-hist, xedges, yedges = np.histogram2d(xpos, ypos, bins=bins)#, density=True)
+hist, xedges, yedges = np.histogram2d(xpos, ypos, bins=bins) #, density=True)
 Norm = np.max(Z)/np.max(hist) * hist
 
-
 x, y = np.meshgrid(xedges[:-1]+xedges[1:], yedges[:-1]+yedges[1:])
-
 x = x.flatten()/2
 y = y.flatten()/2
 z = np.zeros_like(x)
-
 
 dx = xedges[1] - xedges[0]
 dy = yedges[1] - yedges[0]
@@ -228,29 +237,24 @@ ax.set_zlabel("Probability Density")
 #     "The 3D surface plot is the analytic solution to probability density function of the potential."
 #     )
 #plt.figtext(0.5, 0.01, txt, wrap=True, horizontalalignment='center', fontsize=12)
-
-dir, file = os.path.split(__file__)
-fig.savefig(dir + '\\Images\\3Dhist.png')
+#fig.savefig(dir + '\\Images\\3Dhist.png')
 plt.show()
 
 
-x = xpos
-y = ypos
-R = 2
-xs = np.linspace(- R, R, 100)
-
-H, xedges, yedges = np.histogram2d(x, y, bins=bins)
-H = H.T
-
+"Contour Hist"
 fig = plt.figure(figsize=(6, 6))
 
 ax = fig.add_subplot(title='Histogram Contour')
-X, Y = np.meshgrid(xedges, yedges)
-ax.pcolormesh(X, Y, H)
-plt.plot(xs, - (R**2 - xs**2) ** (1/2), 'k-')
-plt.plot(xs, (R**2 - xs**2) ** (1/2), 'k-')
 
+hist, xedges, yedges = np.histogram2d(xpos, ypos, bins=bins)
+hist = hist.T
+
+x, y = np.meshgrid(xedges, yedges)
+ax.pcolormesh(x, y, hist)
+
+xs = np.linspace(- R, R, 100)
+if pot == pot2:
+    plt.plot(xs, - (R**2 - xs**2) ** (1/2), 'k-')
+    plt.plot(xs, (R**2 - xs**2) ** (1/2), 'k-')
 #fig.savefig(dir + '\\Images\\contour-hist_Higgs.png')
-
 plt.show()
-

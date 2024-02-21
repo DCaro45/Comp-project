@@ -9,14 +9,14 @@ import os
 mass = 1   # setting mass to be 1
 
 ti = 0     # start time
-tf = 4     # finish time
-div_t = 2  # division of time points (i.e whole numbs, half, third etc))
+tf = 10     # finish time
+div_t = 1  # division of time points (i.e whole numbs, half, third etc))
 
-epsilon = 1.4  # change in delta_xs size from spatial lattice spacing
-bins = 1000     # number of bins for histogram
+epsilon = 5   # change in delta_xs size from spatial lattice spacing
+bins = 100     # number of bins for histogram
 
 N_cor = 25        # number of paths to be skipped path set (due to correlation)
-N_CF = 10 ** 6    # number of updates
+N_CF = 10 ** 4    # number of updates
 
 '''determinants/shorthands'''
 n_tp = div_t * (tf - ti) + 1          # number of temporal points
@@ -41,7 +41,12 @@ def pot1(x):
     return V
 
 def pot2(x):
-    V = - 1/3 * x ** 2 + x ** 5 + 5 * np.cos(x)
+    a = 1
+    b = -1/12
+    c = 1/1500
+    d = 1/10000
+    p = 1/8
+    V = a * x + b * x ** 3 + c * x ** 5 + d * np.exp(x ** 2) ** p
     return V
 
 def pot3(x):
@@ -56,7 +61,7 @@ def pot5(x):
     if -5 < x < 5:
         V = x
     else:
-        V = 100000
+        V = 1000000
     return V
 
 def pot6(x):
@@ -66,7 +71,15 @@ def pot6(x):
     V = - 0.5 * u ** 2 * x ** 2 + 0.25 * l ** 2 * x ** 4
     return V
 
-pot = pot5
+pot = pot2
+
+xs = np.linspace(-10, 10, 100)
+V = []
+for x in xs:
+    V.append(pot(x))
+plt.plot(xs, V)
+plt.show()
+
 
 def actn(x, j, potential):
     """calculating energies"""
@@ -131,10 +144,10 @@ for i in range(T):
     array.append(new_p)
 
 """generating paths and applying metropolis"""
-all_ps = []
+all_ps = [init]
 t_counts = 0
 for j in range(N_CF):
-    start_p = init
+    start_p = all_ps[-1]
     for i in range(U):
         new_p, counts = Metropolis(start_p, pot)
         start_p = new_p
@@ -153,7 +166,7 @@ for i in range(ln):
         k += 1
 
 
-xs = np.linspace(min(pos), max(pos), len(pos))
+xs = np.linspace(-10, 10, len(pos))
 V = []
 for x in xs:
     V.append(pot(x))

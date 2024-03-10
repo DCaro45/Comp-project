@@ -17,9 +17,9 @@ tf = 5  # finish time
 
 n_t = 6         # number of temporal points (i.e whole numbs, half, third etc))
 div_x = 5       # division of spacial points
-N = int(10**8)  # number of paths seeding metropolis
+N = int(10**6)  # number of paths seeding metropolis
 
-N_fin = int(10e+6)                    # finishing value on logarithmic scale
+N_fin = int(10e+4)                    # finishing value on logarithmic scale
 nbr = 20                             # number of graphs
 
 

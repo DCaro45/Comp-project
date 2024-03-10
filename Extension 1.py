@@ -6,17 +6,16 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 import os
 
-
 dir, file = os.path.split(__file__)
 
 '''values'''
 mass = 1   # setting mass to be 1
 
 t_i = 0     # start time
-t_f = 20     # finish time
-div = 0.5  # division of time points (i.e. whole numbs, half, third etc.))
+t_f = 0.1     # finish time
+div = 10  # division of time points (i.e. whole numbs, half, third etc.))
 
-epsilon = 3  # change in delta_xs size from spatial lattice spacing
+epsilon = 1  # change in delta_xs size from spatial lattice spacing
 bins = 50      # number of bins for histogram
 
 N_cor = 20        # number of paths to be skipped path set (due to correlation)
@@ -86,7 +85,7 @@ def pot4(x,y):
     return V
 
 
-pot = pot4
+pot = pot1
 
 x0 = -4
 x1 = 4
@@ -110,20 +109,21 @@ def actn(x, y, j, potential):
     jp = (j-1) % nt
     jn = (j+1) % nt
 
-    #r = np.sqrt(x[j] ** 2 + y[j] ** 2)
-    #rp = np.sqrt(x[jp] ** 2 + y[jp] ** 2)
-    #rn = np.sqrt(x[jn] ** 2 + y[jn] ** 2)
-    #KE = m * r * (r - rp - rn) / (a ** 2)
+    r = np.sqrt(x[j] ** 2 + y[j] ** 2)
+    rp = np.sqrt(x[jp] ** 2 + y[jp] ** 2)
+    rn = np.sqrt(x[jn] ** 2 + y[jn] ** 2)
+    KE = m * r * (r - rp - rn) / (a ** 2)
 
-    KE_x = m * x[j] * (x[j] - x[jp] - x[jn]) / (a ** 2)
-    KE_y = m * y[j] * (y[j] - y[jp] - y[jn]) / (a ** 2)
-    KE = KE_x + KE_y
+    #KE_x = m * x[j] * (x[j] - x[jp] - x[jn]) / (a ** 2)
+    #KE_y = m * y[j] * (y[j] - y[jp] - y[jn]) / (a ** 2)
+    #KE = KE_x + KE_y
 
     PE = potential(x[j], y[j])
     E_tot = KE + PE
     Action = a * E_tot
 
     return Action
+
 
 def Metropolis(path_x, path_y, potential):
     """creating the metropolis algorithm"""
@@ -167,10 +167,13 @@ print(px1, py1, count/nt, sep='\n')
 
 init_x = px_1
 init_y = py_1
+'''
 for i in range(T):
     new_px, new_py, counts = Metropolis(init_x, init_y, pot)
     init_x = new_px
     init_y = new_py
+'''
+
 
 """Generating paths and applying metropolis"""
 
@@ -207,6 +210,7 @@ for i in range(N):
 print('done')
 
 
+
 """Graphs"""
 
 "Generating potential"
@@ -218,17 +222,24 @@ y1 = max(ypos)
 X = np.linspace(x0, x1, 100)
 Y = np.linspace(y0, y1, 100)
 X, Y = np.meshgrid(X, Y)
-Z = pot(X, Y)
-#Z = pdf(X, Y)
-
-R = u/l
-
+if pot == pot1:
+    Z = pdf(X, Y)
+    name = 'Harmonic'
+elif pot == pot2:
+    R = u/l
+    name = 'Higgs'
+else:
+    Z = pot(X, Y)
 
 "3D Hist"
 fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
 
-hist, xedges, yedges = np.histogram2d(xpos, ypos, bins=bins) #, density=True)
-Norm = np.max(Z)/np.max(hist) * hist
+if pot == pot1:
+    hist, xedges, yedges = np.histogram2d(xpos, ypos, bins=bins)
+    Norm = np.max(Z)/np.max(hist) * hist
+else:
+    hist, xedges, yedges = np.histogram2d(xpos, ypos, bins=bins, density=True)
+    Norm = hist
 
 x, y = np.meshgrid(xedges[:-1]+xedges[1:], yedges[:-1]+yedges[1:])
 x = x.flatten()/2
@@ -258,7 +269,7 @@ ax.set_zlabel("Probability Density")
 #     "The 3D surface plot is the analytic solution to probability density function of the potential."
 #     )
 #plt.figtext(0.5, 0.01, txt, wrap=True, horizontalalignment='center', fontsize=12)
-#fig.savefig(dir + '\\Images\\3Dhist.png')
+fig.savefig(dir + '\\Images\\3Dhist_' + name + '-' + str(t_f) + 's.png')
 plt.show()
 
 
@@ -273,9 +284,9 @@ hist = hist.T
 x, y = np.meshgrid(xedges, yedges)
 ax.pcolormesh(x, y, hist)
 
-xs = np.linspace(- R, R, 100)
 if pot == pot2:
+    xs = np.linspace(- R, R, 100)
     plt.plot(xs, - (R**2 - xs**2) ** (1/2), 'k-')
     plt.plot(xs, (R**2 - xs**2) ** (1/2), 'k-')
-#fig.savefig(dir + '\\Images\\contour-hist_Higgs.png')
+fig.savefig(dir + '\\Images\\contour-hist_' + name + '-' + str(t_f) + 's.png')
 plt.show()

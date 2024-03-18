@@ -5,54 +5,46 @@ import matplotlib.pyplot as plt
 import random as rdm
 import os
 
+plt.rcParams["font.family"]="serif"
+plt.rcParams["mathtext.fontset"]="dejavuserif"
+
 dir, file = os.path.split(__file__)
-
-
-##values
-number = 2  #Division of ticks (i.e whole numbs, half, third etc)
-x1 = 2      #upper bound
-x0 = -x1    #lower bound
-ti = 0      #start time
-tf = 5      #finish time
-
-
-##determinants
-
-n = number * (x1 - x0) + 1     #number of steps
-n = n
-a = (tf-ti)/(n-1)                  #time step
-points = np.linspace(x0,x1,n)  #spacial lattice points
-
-x = points       #shorthand for lattice points
 
 '''values'''
 mass = 1   # setting mass to be 1
 
 t_i = 0     # start time
 t_f = 4     # finish time
-div = 2     # division of time points (i.e whole numbs, half, third etc))
+x1 = 2      #upper bound
+x0 = -x1    #lower bound
+step = 0.5     # division of time points (i.e whole numbs, half, third etc))
+x_step = 1
 
-epsilon = 10   # change in delta_xs size from spatial lattice spacing
-bins = 100     # number of bins for histogram
+epsilon = 1   # change in delta_xs size from spatial lattice spacing
 
-N_cor = 20        # number of paths to be skipped path set (due to correlation)
-Therm = 20 * N_cor    # number of sweeps through path set
+N_cor = 20       # number of paths to be skipped path set (due to correlation)
+Therm = 5 * N_cor    # number of sweeps through path set
+
+save = False
 
 '''determinants/shorthands'''
-n_tp = int( div * (t_f - t_i) + 1 )         # number of temporal points
-n_tl = int( div * (t_f - t_i) )             # number of temporal links
-a = (t_f - t_i) / n_tl                  # size of time step
-t_points = np.linspace(t_i, t_f, n_tp)  # temporal lattice points
+t_points = np.arange(t_i, t_f + step, step)  # number of temporal points
+x_points = np.arange(x0, x1 + step, x_step)  #spacial lattice points
+n_tp = len(t_points)          # number of temporal points
+n_tl = n_tp - 1               # temporal lattice points
 
 
 m = mass           # shorthand for mass
 nt = n_tp           # shorthand for no.t points
 t = t_points       # shorthand for temporal lattice points
+x = x_points       # shorthand for spatial lattice points
 e = epsilon        # shorthand for epsilon
+a = step           # shorthand for size of time step
 U = int(N_cor)     # shorthand for sweeps 2 (and integer data type)
 T = int(Therm)     # shorthand for sweeps 1 (and integer data type)
 
-
+print('nt = ' + str(nt) + ', ' + 'a = ' + str(a) + ', ' + 't = ' + str(t) + ', ' + 'x = ' + str(x) + ', ' +
+      'N_cor/Update = ' + str(U) + ', ' + 'Therm = ' + str(T))
 
 def pot(x):
     """simple harmonic oscillator potential"""
@@ -102,46 +94,53 @@ def Metropolis(path, potential):
     return path, count
 
 
+def path_gen(xs, x0):
+    path = np.zeros([nt])
+    path[0] = path[nt-1] = x0
+    for i in range(1,nt-1):
+        path[i]=rdm.choice(xs)
+    return path
+
+
 """Initialising paths and trialing metropolis"""
 
-p_1 = [0 for x in range(nt)]
+p_1 = [0 for X in range(nt)]
 p1, count = Metropolis(p_1, pot)
 print(p1, count/nt)
 
 
-"""Thermalising lattice"""
+"""Metropolis Paths"""
 
 init = p_1
+
+fig = plt.figure(figsize=[6,6])
+fig.tight_layout()
+plt.tick_params(labelbottom=True, labeltop=False, labelleft=True, labelright=False, direction='in')
+plt.tick_params(bottom=True, top=False, left=True, right=False)
+plt.axvline(0, linestyle='dashed', color='black', linewidth='1', label='Origin')
 for i in range(T):
     new_p, counts = Metropolis(init, pot)
     init = new_p
-    plt.plot(init,t_points, alpha=0.2)
+    if i == 0:
+        plt.plot(init, t_points, label='Path')
+    plt.plot(init, t_points, alpha=(0.98)**i)
+plt.grid(axis = 'y')
+plt.xlabel('Position (x)')
+plt.ylabel('Time (t)')
+plt.legend(loc='upper left')
+if save == True:
+    fig.savefig(dir + '\\Images\\Metropolis paths.png')
 plt.show()
 
-##path
-
-def path_gen(xs, n, x0):
-    path = np.zeros([n])
-    path[0]=path[n-1] = x0
-    for i in range(1,n-1):
-        path[i]=rdm.choice(xs)
-    return path
-
-p_1 = path_gen(x, n, x[2])
 
 
-###graph
+"""Brute force paths"""
 
 samples = 5
 
-#time points
-ts = np.linspace(ti, tf, n)
-
 plt.figure(figsize = [3, 4])
-
 for i in range(0,samples):
-    p = path_gen(x, n, x[4])
-    plt.plot(p, ts)
-
+    p = path_gen(x, x[np.where(x == 0)])
+    plt.plot(p, t)
 plt.grid(axis = 'x')
 plt.show()
